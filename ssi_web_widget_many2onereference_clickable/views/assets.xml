@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2023 OpenSynergy Indonesia
+     Copyright 2023 PT. Simetri Sinergi Indonesia
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+    <template
+        id="assets_backend"
+        name="ssi_web_widget_many2onereference_clickable assets"
+        inherit_id="web.assets_backend"
+    >
+        <xpath expr="." position="inside">
+            <link
+                rel="stylesheet"
+                href="/ssi_web_widget_many2onereference_clickable/static/src/css/ssi_web_widget_many2onereference_clickable.scss"
+            />
+            <script
+                type="text/javascript"
+                src="/ssi_web_widget_many2onereference_clickable/static/src/js/ssi_web_widget_many2onereference_clickable.js"
+            />
+        </xpath>
+    </template>
+</odoo>
