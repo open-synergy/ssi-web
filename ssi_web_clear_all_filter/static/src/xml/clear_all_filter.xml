@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Copyright 2023 OpenSynergy Indonesia
+     Copyright 2023 PT. Simetri Sinergi Indonesia
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<template>
+
+    <t
+        t-name="ssi_web_clear_all_filter.SearchBar"
+        t-inherit="web.SearchBar"
+        t-inherit-mode="extension"
+        owl="1"
+    >
+        <xpath expr="//div[hasclass('o_searchview_input_container')]" position="inside">
+            <div t-if="model.get('facets').length" class="oe_cp_clear_filter" role="img" t-ref="clear_all_filter">
+                <button
+                    class="fa fa-times-circle-o btn btn-icon o_facet_remove"
+                    aria-label="Clear All Filter"
+                    t-on-click="_doClearAllFilter(model.get('facets'))"
+                    title="Clear All Filter"
+                />
+            </div>
+        </xpath>
+    </t>
+
+</template>
