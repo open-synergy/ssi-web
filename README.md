@@ -18,6 +18,7 @@ Available addons
 ----------------
 addon | version | maintainers | summary
 --- | --- | --- | ---
+[ssi_web_clear_all_filter](ssi_web_clear_all_filter/) | 14.0.1.0.0 |  | Web Clear All Filter
 [ssi_web_widget_many2onereference_clickable](ssi_web_widget_many2onereference_clickable/) | 14.0.1.0.0 |  | Widget Many2one Reference Clickable
 
 [//]: # (end addons)
