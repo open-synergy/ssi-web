@@ -14,7 +14,7 @@
         "web",
     ],
     "data": [
-
+        "views/assets.xml",
     ],
     "qweb": [
 
