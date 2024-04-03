@@ -12,15 +12,7 @@
         <xpath expr="." position="inside">
             <script
                 type="text/javascript"
-                src="/ssi_web_server_action_confirmation/static/src/js/form_controller.js"
-            />
-            <script
-                type="text/javascript"
-                src="/ssi_web_server_action_confirmation/static/src/js/action_menus.js"
-            />
-            <script
-                type="text/javascript"
-                src="/ssi_web_server_action_confirmation/static/src/js/basic_controller.js"
+                src="/ssi_web_server_action_confirmation/static/src/js/action_manager.js"
             />
         </xpath>
     </template>
