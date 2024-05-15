@@ -10,18 +10,21 @@ odoo.define("ssi_web_server_action_confirmation.ActionManager", function (requir
         _onClickServerAction: async function (action, options) {
             Dialog.confirm(
                 this,
-                _t("Are you sure that you would like to perform this action (" + action.name +")?"),
+                _t(
+                    "Are you sure that you would like to perform this action (" +
+                        action.name +
+                        ")?"
+                ),
                 {
                     confirm_callback: () => this._executeServerAction(action, options),
                 }
             );
         },
         _handleAction: function (action, options) {
-            if (action.type === 'ir.actions.server') {
+            if (action.type === "ir.actions.server") {
                 return this._onClickServerAction(action, options);
-            } else {
-                return this._super.apply(this, arguments);
             }
+            return this._super.apply(this, arguments);
         },
     });
 });
