@@ -11,7 +11,12 @@
         owl="1"
     >
         <xpath expr="//div[hasclass('o_searchview_input_container')]" position="inside">
-            <div t-if="model.get('facets').length" class="oe_cp_clear_filter" role="img" t-ref="clear_all_filter">
+            <div
+                t-if="model.get('facets').length"
+                class="oe_cp_clear_filter"
+                role="img"
+                t-ref="clear_all_filter"
+            >
                 <button
                     class="fa fa-times-circle-o btn btn-icon o_facet_remove"
                     aria-label="Clear All Filter"
