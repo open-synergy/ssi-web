@@ -9,6 +9,7 @@ setuptools.setup(
     version=version,
     install_requires=[
         'odoo14-addon-ssi_web_clear_all_filter',
+        'odoo14-addon-ssi_web_server_action_confirmation',
         'odoo14-addon-ssi_web_widget_many2onereference_clickable',
     ],
     classifiers=[
