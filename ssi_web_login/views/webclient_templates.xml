@@ -6,7 +6,7 @@
                 <label for="login">Username</label>
                 <input
                     type="text"
-                    placeholder="Email"
+                    placeholder="Username"
                     name="login"
                     t-att-value="login"
                     id="login"
