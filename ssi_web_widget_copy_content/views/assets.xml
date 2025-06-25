@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="assets_backend" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <link rel="stylesheet" href="/ssi_web_widget_copy_content/static/src/css/copy_button.css"/>
+                
+                <script type="text/javascript" src="/ssi_web_widget_copy_content/static/src/js/copy_content_widgets.js"></script> 
+            </xpath>
+        </template>
+    </data>
+</odoo>
