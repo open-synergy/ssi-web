@@ -21,6 +21,8 @@ addon | version | maintainers | summary
 [ssi_web_clear_all_filter](ssi_web_clear_all_filter/) | 14.0.1.0.0 |  | Web Clear All Filter
 [ssi_web_login](ssi_web_login/) | 14.0.1.0.1 |  | SSI Web Login
 [ssi_web_server_action_confirmation](ssi_web_server_action_confirmation/) | 14.0.1.0.0 |  | Web Server Action Confirmation
+[ssi_web_widget_ace_git](ssi_web_widget_ace_git/) | 14.0.1.1.0 |  | Extends the Ace code widget with a button to fetch file content from GitHub
+[ssi_web_widget_copy_content](ssi_web_widget_copy_content/) | 14.0.1.1.0 |  | Widget to Add Copy Button Beside Field
 [ssi_web_widget_many2onereference_clickable](ssi_web_widget_many2onereference_clickable/) | 14.0.1.0.0 |  | Widget Many2one Reference Clickable
 
 [//]: # (end addons)

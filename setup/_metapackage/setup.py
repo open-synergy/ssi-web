@@ -11,6 +11,8 @@ setuptools.setup(
         'odoo14-addon-ssi_web_clear_all_filter',
         'odoo14-addon-ssi_web_login',
         'odoo14-addon-ssi_web_server_action_confirmation',
+        'odoo14-addon-ssi_web_widget_ace_git',
+        'odoo14-addon-ssi_web_widget_copy_content',
         'odoo14-addon-ssi_web_widget_many2onereference_clickable',
     ],
     classifiers=[
