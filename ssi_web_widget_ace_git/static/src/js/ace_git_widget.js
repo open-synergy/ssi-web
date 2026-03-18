@@ -1,6 +1,6 @@
 // Copyright 2026 OpenSynergy Indonesia
 // Copyright 2026 PT. Simetri Sinergi Indonesia
-// License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl).
+// License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 odoo.define("ssi_web_widget_ace_git.AceGitWidget", function (require) {
     "use strict";
