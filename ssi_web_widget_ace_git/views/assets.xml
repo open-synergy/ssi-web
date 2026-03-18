@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2026 OpenSynergy Indonesia
+     Copyright 2026 PT. Simetri Sinergi Indonesia
+     License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl). -->
+<odoo>
+
+    <!-- Register the JavaScript file in the backend asset bundle. -->
+    <template
+        id="assets_backend"
+        name="ssi_web_widget_ace_git backend assets"
+        inherit_id="web.assets_backend"
+    >
+        <xpath expr="." position="inside">
+            <script
+                type="text/javascript"
+                src="/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js"
+            />
+        </xpath>
+    </template>
+
+</odoo>
