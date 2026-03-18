@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2026 OpenSynergy Indonesia
+     Copyright 2026 PT. Simetri Sinergi Indonesia
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<templates>
+
+    <!--
+        Dialog form template rendered by core.qweb.render() in the JS widget.
+        It provides two inputs:
+          1. GitHub File URL  (text)
+          2. GitHub Personal Access Token  (password, optional)
+    -->
+    <t t-name="ssi_web_widget_ace_git.FetchGitHubDialog">
+        <div class="o_ace_git_dialog_form">
+
+            <div class="form-group mb-3">
+                <label class="col-form-label font-weight-bold" for="ace_git_url">
+                    GitHub File URL
+                </label>
+                <input
+                    type="text"
+                    id="ace_git_url"
+                    name="ace_git_url"
+                    class="form-control"
+                    placeholder="https://github.com/user/repo/blob/main/path/to/file.py"
+                    autocomplete="off"
+                    spellcheck="false"
+                />
+                <small class="form-text text-muted">
+                    Supports GitHub web URL
+                    (<code>github.com/.../blob/...</code>)
+                    or raw URL
+                    (<code>raw.githubusercontent.com/...</code>).
+                </small>
+            </div>
+
+            <div class="form-group mb-1">
+                <label class="col-form-label font-weight-bold" for="ace_git_token">
+                    GitHub Personal Access Token
+                    <span class="text-muted font-weight-normal font-italic">
+                        (optional for public repos)
+                    </span>
+                </label>
+                <input
+                    type="password"
+                    id="ace_git_token"
+                    name="ace_git_token"
+                    class="form-control"
+                    placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                    autocomplete="new-password"
+                />
+                <small class="form-text text-muted">
+                    Required for <strong>private</strong> repositories.
+                    Leave empty for public repositories.
+                    Token is not stored on the server.
+                </small>
+            </div>
+
+        </div>
+    </t>
+
+</templates>
