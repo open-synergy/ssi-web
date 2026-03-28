@@ -1,0 +1,47 @@
+/* --------------------------------------------------------------------------
+   WhatsApp Widget – ssi_web_widget_whatsapp
+   -------------------------------------------------------------------------- */
+
+/* Container alignment */
+.o_field_whatsapp {
+    display: inline-flex;
+    align-items: center;
+}
+
+/* WhatsApp button (readonly / view mode) */
+.o_whatsapp_btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #25d366;
+    color: #ffffff !important;
+    text-decoration: none !important;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    line-height: 1;
+}
+
+.o_whatsapp_btn:hover,
+.o_whatsapp_btn:focus {
+    background-color: #1da84e;
+    color: #ffffff !important;
+    text-decoration: none !important;
+    transform: scale(1.1);
+    outline: none;
+}
+
+.o_whatsapp_btn:active {
+    transform: scale(0.95);
+}
+
+/* WhatsApp icon inside the button */
+.o_whatsapp_icon {
+    font-size: 18px;
+    line-height: 1;
+}
+
+/* Edit-mode: widget is hidden, no styling needed */
