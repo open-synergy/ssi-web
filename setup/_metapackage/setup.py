@@ -13,6 +13,7 @@ setuptools.setup(
         'odoo14-addon-ssi_web_server_action_confirmation',
         'odoo14-addon-ssi_web_widget_ace_git',
         'odoo14-addon-ssi_web_widget_copy_content',
+        'odoo14-addon-ssi_web_widget_csv_table',
         'odoo14-addon-ssi_web_widget_many2onereference_clickable',
         'odoo14-addon-ssi_web_widget_whatsapp',
     ],
