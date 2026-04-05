@@ -1,5 +1,37 @@
 .o_field_csv_table {
     max-width: 100%;
+    width: 100%;
+
+    .csv_table_toggle_bar {
+        .csv_table_toggle_btn {
+            min-width: 60px;
+
+            &.btn-outline-secondary {
+                color: #495057;
+                background-color: #e9ecef;
+                border-color: #adb5bd;
+
+                &:hover {
+                    background-color: #dee2e6;
+                }
+            }
+        }
+    }
+
+    .csv_table_textarea {
+        display: block;
+        width: 100%;
+        min-height: 250px;
+        height: auto;
+        overflow-y: auto;
+        font-family: monospace;
+        font-size: 12px;
+        padding: 6px 8px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        resize: vertical;
+        line-height: 1.5;
+    }
 
     .csv_table_wrapper {
         overflow-x: auto;
@@ -16,6 +48,15 @@
         font-size: 12px;
         white-space: nowrap;
 
+        // When table-layout:fixed is set by JS resize, cells must clip
+        &[style*="table-layout"] {
+            th,
+            td {
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
+
         thead {
             position: sticky;
             top: 0;
@@ -27,6 +68,23 @@
                 font-weight: 600;
                 padding: 4px 8px;
                 vertical-align: middle;
+                position: relative;
+                overflow: hidden;
+
+                .csv_table_col_resize_handle {
+                    position: absolute;
+                    top: 0;
+                    right: 0;
+                    width: 5px;
+                    height: 100%;
+                    cursor: col-resize;
+                    background: transparent;
+                    z-index: 2;
+
+                    &:hover {
+                        background: rgba(0, 0, 0, 0.15);
+                    }
+                }
             }
         }
 
@@ -55,6 +113,34 @@
         .csv_table_cell_numeric {
             text-align: right;
             font-variant-numeric: tabular-nums;
+        }
+
+        // Editable cell styles
+        .csv_table_edit_cell {
+            padding: 0 !important;
+
+            .csv_table_cell_input {
+                width: 100%;
+                height: 100%;
+                min-height: 28px;
+                font-size: 12px;
+                padding: 2px 6px;
+                background: transparent;
+
+                &:focus {
+                    background: #fff;
+                    box-shadow: inset 0 0 0 2px #7c7bad;
+                }
+
+                &.text-right {
+                    text-align: right;
+                }
+            }
+
+            .csv_table_cell_checkbox {
+                margin: 6px;
+                cursor: pointer;
+            }
         }
     }
 
