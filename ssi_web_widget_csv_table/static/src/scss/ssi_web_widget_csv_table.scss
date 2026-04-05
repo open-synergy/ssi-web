@@ -48,6 +48,15 @@
         font-size: 12px;
         white-space: nowrap;
 
+        // When table-layout:fixed is set by JS resize, cells must clip
+        &[style*="table-layout"] {
+            th,
+            td {
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
+
         thead {
             position: sticky;
             top: 0;
@@ -59,6 +68,23 @@
                 font-weight: 600;
                 padding: 4px 8px;
                 vertical-align: middle;
+                position: relative;
+                overflow: hidden;
+
+                .csv_table_col_resize_handle {
+                    position: absolute;
+                    top: 0;
+                    right: 0;
+                    width: 5px;
+                    height: 100%;
+                    cursor: col-resize;
+                    background: transparent;
+                    z-index: 2;
+
+                    &:hover {
+                        background: rgba(0, 0, 0, 0.15);
+                    }
+                }
             }
         }
 

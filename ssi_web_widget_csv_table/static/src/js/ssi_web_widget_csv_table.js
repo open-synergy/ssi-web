@@ -176,6 +176,56 @@ odoo.define("ssi_web_widget_csv_table.csv_table", function (require) {
     }
 
     /**
+     * Attach column-resize drag handles to every <th> in a table.
+     * Uses mousedown/mousemove/mouseup on document for smooth dragging.
+     *
+     * @param {jQuery} $table - the <table> element
+     * @returns {void}
+     */
+    function _addColResize($table) {
+        var headers = $table.find("thead th");
+        headers.each(function () {
+            var $th = $(this);
+            if ($th.hasClass("csv_table_row_number")) {
+                return;
+            }
+            var $handle = $("<span/>", {class: "csv_table_col_resize_handle"});
+            $th.css("position", "relative").append($handle);
+
+            $handle.on("mousedown", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                // On first drag, snapshot all widths then switch to fixed layout
+                if ($table.css("table-layout") !== "fixed") {
+                    var allWidths = [];
+                    headers.each(function () {
+                        allWidths.push($(this).outerWidth());
+                    });
+                    $table.css("table-layout", "fixed");
+                    headers.each(function (idx) {
+                        $(this).css("width", allWidths[idx] + "px");
+                    });
+                }
+
+                var startX = e.pageX;
+                var startWidth = $th.outerWidth();
+
+                function onMove(ev) {
+                    $th.css(
+                        "width",
+                        Math.max(40, startWidth + ev.pageX - startX) + "px"
+                    );
+                }
+                function onUp() {
+                    $(document).off("mousemove", onMove).off("mouseup", onUp);
+                }
+                $(document).on("mousemove", onMove).on("mouseup", onUp);
+            });
+        });
+    }
+
+    /**
      * Build an HTML table from parsed CSV rows.
      *
      * @param {Array<Array<String>>} rows - 2D array of cell values
@@ -237,6 +287,11 @@ odoo.define("ssi_web_widget_csv_table.csv_table", function (require) {
 
         $wrapper.append($table);
         $wrapper.append($info);
+
+        // Attach resize handles to header columns
+        if (hasHeader && rows.length > 0) {
+            _addColResize($table);
+        }
 
         return $wrapper;
     }
