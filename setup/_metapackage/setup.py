@@ -9,6 +9,7 @@ setuptools.setup(
     version=version,
     install_requires=[
         'odoo14-addon-ssi_web_clear_all_filter',
+        'odoo14-addon-ssi_web_edit_attachment_name',
         'odoo14-addon-ssi_web_login',
         'odoo14-addon-ssi_web_server_action_confirmation',
         'odoo14-addon-ssi_web_widget_ace_git',
