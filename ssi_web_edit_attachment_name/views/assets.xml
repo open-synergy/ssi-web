@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2024 OpenSynergy Indonesia
+     Copyright 2024 PT. Simetri Sinergi Indonesia
+     License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl). -->
+<odoo>
+    <template
+        id="ssi_web_edit_attachment_name"
+        name="Edit Attachment Name"
+        inherit_id="web.assets_backend"
+    >
+        <xpath expr=".">
+            <script
+                src="/ssi_web_edit_attachment_name/static/src/js/edit_attachment_name.js"
+                type="text/javascript"
+            />
+        </xpath>
+    </template>
+</odoo>

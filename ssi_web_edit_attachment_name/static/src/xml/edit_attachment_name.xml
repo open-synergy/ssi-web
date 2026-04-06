@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Copyright 2024 OpenSynergy Indonesia
+     Copyright 2024 PT. Simetri Sinergi Indonesia
+     License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl). -->
+<templates xml:space="preserve">
+
+    <t
+        t-name="ssi_web_edit_attachment_name.Attachment"
+        t-inherit="mail.Attachment"
+        t-inherit-mode="extension"
+        owl="1"
+    >
+        <!-- Add edit name icon in card mode aside -->
+        <xpath expr="//div[hasclass('o_Attachment_aside')]" position="inside">
+            <t t-if="props.isEditable and !attachment.isTemporary">
+                <div
+                    class="o_Attachment_asideItem o_Attachment_asideItemEditName"
+                    tabindex="0"
+                    role="menuitem"
+                    aria-label="Edit Name"
+                    t-on-click="_onClickEditName"
+                    title="Edit Name"
+                >
+                    <i class="fa fa-pencil" />
+                </div>
+            </t>
+        </xpath>
+        <!-- Add edit name icon in hover mode overlay actions -->
+        <xpath expr="//div[hasclass('o_Attachment_actions')]" position="inside">
+            <t t-if="props.isEditable and !attachment.isTemporary" t-key="'editName'">
+                <div
+                    class="o_Attachment_action o_Attachment_actionEditName"
+                    tabindex="0"
+                    aria-label="Edit Name"
+                    role="menuitem"
+                    t-on-click="_onClickEditName"
+                    title="Edit Name"
+                >
+                    <i class="fa fa-pencil" />
+                </div>
+            </t>
+        </xpath>
+    </t>
+
+</templates>
