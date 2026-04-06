@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!-- Copyright 2025 OpenSynergy Indonesia
      Copyright 2025 PT. Simetri Sinergi Indonesia
-     License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl). -->
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/AGPL). -->
 <odoo>
     <template
         id="assets_backend"

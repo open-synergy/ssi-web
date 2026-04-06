@@ -1,6 +1,6 @@
 // Copyright 2025 OpenSynergy Indonesia
 // Copyright 2025 PT. Simetri Sinergi Indonesia
-// License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl).
+// License AGPL-3.0 or later (http://www.gnu.org/licenses/AGPL).
 //
 // Pure JavaScript XLSX writer.
 // No external SheetJS dependency required.
