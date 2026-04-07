@@ -144,9 +144,41 @@
         }
     }
 
-    .csv_table_info {
-        padding: 4px 8px;
-        border-top: 1px solid #dee2e6;
-        background-color: #fafafa;
+    .csv_table_footer {
+        padding: 6px 10px;
+        border-top: 2px solid #bbb;
+        background-color: #f0f0f0;
+    }
+
+    .csv_table_pager {
+        .csv_table_page_btn {
+            padding: 4px 10px;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.4;
+            min-width: 34px;
+            color: #fff;
+            background-color: #875a7b;
+            border-color: #875a7b;
+
+            &:hover:not(:disabled) {
+                background-color: #6b4664;
+                border-color: #6b4664;
+                color: #fff;
+            }
+
+            &:disabled {
+                opacity: 0.35;
+                cursor: not-allowed;
+                background-color: #c0a4b8;
+                border-color: #c0a4b8;
+            }
+        }
+
+        .csv_table_page_info {
+            font-size: 13px;
+            font-weight: 600;
+            color: #495057;
+        }
     }
 }

@@ -270,23 +270,107 @@ odoo.define("ssi_web_widget_csv_table.csv_table", function (require) {
             $table.append($thead);
         }
 
-        // Body
+        // Pagination params
+        var pageSize = options.pageSize || 100;
+        var dataStartRow = hasHeader ? 1 : 0;
+        var totalDataRows = rows.length - dataStartRow;
+        var totalPages = pageSize > 0 ? Math.ceil(totalDataRows / pageSize) : 1;
+        if (totalPages < 1) {
+            totalPages = 1;
+        }
+        var currentPage = options.currentPage || 0;
+        if (currentPage >= totalPages) {
+            currentPage = totalPages - 1;
+        }
+        if (currentPage < 0) {
+            currentPage = 0;
+        }
+
+        var pageStartIdx = dataStartRow + currentPage * pageSize;
+        var pageEndIdx =
+            pageSize > 0 ? Math.min(pageStartIdx + pageSize, rows.length) : rows.length;
+
+        // Body (current page only)
         var $tbody = $("<tbody/>");
-        var startRow = hasHeader ? 1 : 0;
-        for (var i = startRow; i < rows.length; i++) {
+        for (var i = pageStartIdx; i < pageEndIdx; i++) {
             $tbody.append(_buildBodyRow(rows, i, hasHeader, maxCols, editable));
         }
         $table.append($tbody);
 
-        // Row count info
-        var dataRowCount = rows.length - (hasHeader ? 1 : 0);
-        var $info = $("<div/>", {
-            class: "csv_table_info text-muted small mt-1",
-            text: dataRowCount + " rows, " + maxCols + " columns",
+        $wrapper.append($table);
+
+        // Footer: info + pagination
+        var $footer = $("<div/>", {
+            class:
+                "csv_table_footer d-flex align-items-center justify-content-between flex-wrap",
         });
 
-        $wrapper.append($table);
-        $wrapper.append($info);
+        var displayStart = totalDataRows > 0 ? currentPage * pageSize + 1 : 0;
+        var displayEnd = Math.min((currentPage + 1) * pageSize, totalDataRows);
+        var $info = $("<div/>", {
+            class: "csv_table_info text-muted small",
+            text:
+                displayStart +
+                "–" +
+                displayEnd +
+                " of " +
+                totalDataRows +
+                " rows, " +
+                maxCols +
+                " columns",
+        });
+        $footer.append($info);
+
+        if (totalPages > 1) {
+            var $pager = $("<div/>", {
+                class: "csv_table_pager d-flex align-items-center",
+            });
+            $pager.append(
+                $("<button/>", {
+                    class: "btn btn-sm btn-outline-secondary csv_table_page_btn mr-1",
+                    "data-page": 0,
+                    html: "&#171;",
+                    type: "button",
+                    disabled: currentPage === 0,
+                })
+            );
+            $pager.append(
+                $("<button/>", {
+                    class: "btn btn-sm btn-outline-secondary csv_table_page_btn mr-2",
+                    "data-page": currentPage - 1,
+                    html: "&#8249;",
+                    type: "button",
+                    disabled: currentPage === 0,
+                })
+            );
+            $pager.append(
+                $("<span/>", {
+                    class: "csv_table_page_info mr-2",
+                    text: currentPage + 1 + " / " + totalPages,
+                })
+            );
+            $pager.append(
+                $("<button/>", {
+                    class: "btn btn-sm btn-outline-secondary csv_table_page_btn mr-1",
+                    "data-page": currentPage + 1,
+                    html: "&#8250;",
+                    type: "button",
+                    disabled: currentPage >= totalPages - 1,
+                })
+            );
+            $pager.append(
+                $("<button/>", {
+                    class: "btn btn-sm btn-outline-secondary csv_table_page_btn",
+                    "data-page": totalPages - 1,
+                    html: "&#187;",
+                    type: "button",
+                    disabled: currentPage >= totalPages - 1,
+                })
+            );
+            $footer.append($pager);
+        }
+
+        $wrapper.append($footer);
 
         // Attach resize handles to header columns
         if (hasHeader && rows.length > 0) {
@@ -304,6 +388,7 @@ odoo.define("ssi_web_widget_csv_table.csv_table", function (require) {
             "click .csv_table_toggle_btn": "_onToggleMode",
             "change .csv_table_cell_input": "_onTableCellChange",
             "change .csv_table_cell_checkbox": "_onTableCellChange",
+            "click .csv_table_page_btn": "_onPageChange",
         }),
 
         /**
@@ -313,6 +398,9 @@ odoo.define("ssi_web_widget_csv_table.csv_table", function (require) {
             this._super.apply(this, arguments);
             this._hasHeader = true;
             this._tableEditMode = false;
+            this._currentPage = 0;
+            this._pageSize = 50;
+            this._parsedRows = null;
             // FieldText sets tagName='textarea' in edit mode, making $el the
             // textarea itself.  We need a wrapper div so we can place toggle
             // buttons alongside the textarea.
@@ -360,9 +448,15 @@ odoo.define("ssi_web_widget_csv_table.csv_table", function (require) {
                 return;
             }
 
-            this.$el
-                .empty()
-                .append(buildTable(rows, this._hasHeader, {editable: false}));
+            this._parsedRows = rows;
+            this._currentPage = 0;
+            this.$el.empty().append(
+                buildTable(rows, this._hasHeader, {
+                    editable: false,
+                    currentPage: this._currentPage,
+                    pageSize: this._pageSize,
+                })
+            );
         },
 
         /**
@@ -447,7 +541,61 @@ odoo.define("ssi_web_widget_csv_table.csv_table", function (require) {
                 return;
             }
 
-            this.$el.append(buildTable(rows, this._hasHeader, {editable: true}));
+            this._parsedRows = rows;
+            this.$el.append(
+                buildTable(rows, this._hasHeader, {
+                    editable: true,
+                    currentPage: this._currentPage,
+                    pageSize: this._pageSize,
+                })
+            );
+        },
+
+        /**
+         * Sync visible cell edits back to this._parsedRows.
+         */
+        _syncCurrentPageEdits: function () {
+            if (!this._parsedRows) {
+                return;
+            }
+            var rows = this._parsedRows;
+            this.$el.find("[data-row][data-col]").each(function () {
+                var $el = $(this);
+                var r = parseInt($el.data("row"), 10);
+                var c = parseInt($el.data("col"), 10);
+                var val = $el.is(":checkbox")
+                    ? $el.prop("checked")
+                        ? "TRUE"
+                        : "FALSE"
+                    : $el.val();
+                while (rows.length <= r) {
+                    rows.push([]);
+                }
+                while (rows[r].length <= c) {
+                    rows[r].push("");
+                }
+                rows[r][c] = val;
+            });
+        },
+
+        /**
+         * Re-render only the table portion for the current page.
+         */
+        _rerenderTable: function () {
+            this.$el.find(".csv_table_wrapper").remove();
+            this.$el.find(".csv_table_empty_msg").remove();
+
+            if (!this._parsedRows || !this._parsedRows.length) {
+                return;
+            }
+
+            var editable = this.mode === "edit" && this._tableEditMode;
+            var $table = buildTable(this._parsedRows, this._hasHeader, {
+                editable: editable,
+                currentPage: this._currentPage,
+                pageSize: this._pageSize,
+            });
+            this.$el.append($table);
         },
 
         // ------------------------------------------------------------
@@ -495,6 +643,7 @@ odoo.define("ssi_web_widget_csv_table.csv_table", function (require) {
                 // TEXT -> TABLE
                 // Re-parse value from textarea (user may have edited it)
                 this.value = this.$input.val();
+                this._currentPage = 0;
                 this.$input.css("display", "none");
                 this._appendEditableTable();
             } else {
@@ -507,9 +656,33 @@ odoo.define("ssi_web_widget_csv_table.csv_table", function (require) {
          * Handle cell changes in table-edit mode — sync to hidden textarea.
          */
         _onTableCellChange: function () {
-            var csv = this._collectTableValue();
+            this._syncCurrentPageEdits();
+            var csv = rowsToCSV(this._parsedRows);
             this.$input.val(csv);
             this._setValue(csv);
+        },
+
+        /**
+         * Handle pagination button clicks.
+         *
+         * @param {Event} ev - click event
+         */
+        _onPageChange: function (ev) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            var $btn = $(ev.currentTarget);
+            if ($btn.prop("disabled")) {
+                return;
+            }
+            var page = parseInt($btn.data("page"), 10);
+
+            // In edit table mode, sync current page edits first
+            if (this.mode === "edit" && this._tableEditMode) {
+                this._syncCurrentPageEdits();
+            }
+
+            this._currentPage = page;
+            this._rerenderTable();
         },
 
         // ------------------------------------------------------------
@@ -517,36 +690,16 @@ odoo.define("ssi_web_widget_csv_table.csv_table", function (require) {
         // ------------------------------------------------------------
 
         /**
-         * Reconstruct CSV text from the editable table cells.
+         * Reconstruct CSV text from the parsed rows (with current edits synced).
          *
          * @returns {String} CSV text
          */
         _collectTableValue: function () {
-            var value = this.value || "";
-            var rows = parseCSV(value);
-            if (!rows.length) {
-                return value;
+            this._syncCurrentPageEdits();
+            if (!this._parsedRows || !this._parsedRows.length) {
+                return this.value || "";
             }
-
-            this.$el.find("[data-row][data-col]").each(function () {
-                var $el = $(this);
-                var r = parseInt($el.data("row"), 10);
-                var c = parseInt($el.data("col"), 10);
-                var val = $el.is(":checkbox")
-                    ? $el.prop("checked")
-                        ? "TRUE"
-                        : "FALSE"
-                    : $el.val();
-                while (rows.length <= r) {
-                    rows.push([]);
-                }
-                while (rows[r].length <= c) {
-                    rows[r].push("");
-                }
-                rows[r][c] = val;
-            });
-
-            return rowsToCSV(rows);
+            return rowsToCSV(this._parsedRows);
         },
 
         // ------------------------------------------------------------
