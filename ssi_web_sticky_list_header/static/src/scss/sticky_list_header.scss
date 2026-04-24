@@ -1,0 +1,103 @@
+// Copyright 2025 OpenSynergy Indonesia
+// Copyright 2025 PT. Simetri Sinergi Indonesia
+// License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl).
+
+// =============================================================================
+// Web Sticky List Header
+//
+// Makes the <thead> of list views and x2many fields sticky when scrolling.
+//
+// Odoo 14 DOM structure (main list view):
+//   .o_action > .o_content (overflow:auto = scroll container)
+//     └─ .o_view_controller
+//           └─ .o_content (inner, no overflow)
+//                 └─ .o_list_view
+//                       └─ .table-responsive  ← Odoo 14 default: overflow:visible
+//                             └─ table.o_list_table
+//                                   └─ thead   ← sticky target
+//
+// Odoo 14 DOM structure (x2m field):
+//   .o_action > .o_content (overflow:auto = scroll container)
+//     └─ .o_view_controller
+//           └─ .o_content (inner)
+//                 └─ .o_form_view > ... > .o_field_one2many
+//                       └─ .o_list_view
+//                             └─ .table-responsive  ← Bootstrap: overflow-x:auto
+//                                   └─ table.o_list_table
+//                                         └─ thead   ← sticky target
+//
+// Compatible with muk_web_theme:
+//   - muk_web_theme sets `.o_list_view table { overflow-x: hidden }` which
+//     would break sticky. We override it with a more-specific selector.
+//   - muk_web_theme's own sticky selector path is incorrect for Odoo 14
+//     (it targets .o_content > div > .table-responsive > .o_list_view which
+//     doesn't match the actual DOM), so our rules are purely additive.
+// =============================================================================
+
+// Background colour — use Odoo's view bg variable when available.
+$sticky-bg: if(
+    variable-exists(o-view-background-color),
+    $o-view-background-color,
+    #fff
+);
+
+// =============================================================================
+// 1. Standalone (main) list view
+//
+// Odoo 14 default CSS already sets .table-responsive to overflow:visible for
+// this exact path, so the scroll container (.o_content) is already correct.
+// We only need to apply sticky + ensure the table element itself does not
+// create a new scroll container (overrides muk_web_theme).
+// =============================================================================
+.o_view_controller > .o_content > .o_list_view {
+    // Override muk_web_theme: `.o_list_view table { overflow-x: hidden }`.
+    // An overflow value other than visible on <table> would make it a scroll
+    // container, causing sticky to stop working relative to .o_content.
+    .o_list_table {
+        overflow: visible;
+    }
+
+    // Apply sticky header.
+    .o_list_table > thead {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        // Background colour must be set on the actual th cells so content
+        // scrolling behind the header is covered.
+        > tr > th {
+            background-color: $sticky-bg;
+        }
+    }
+}
+
+// =============================================================================
+// 2. X2Many fields (One2many / Many2many) in form views
+//
+// Bootstrap gives .table-responsive overflow-x:auto (which implicitly sets
+// overflow-y:auto too, per CSS spec coercion). This makes .table-responsive
+// the scroll container for sticky — but it has no height constraint so
+// nothing actually sticks. Fix: reset overflow to visible so scroll bubbles
+// up to .o_content.
+// Note: setting overflow:visible removes horizontal scroll on very wide x2m
+// tables. This is an accepted trade-off for sticky header support.
+// =============================================================================
+.o_field_one2many,
+.o_field_many2many {
+    .o_list_view > .table-responsive {
+        overflow: visible;
+    }
+
+    .o_list_table {
+        overflow: visible;
+    }
+
+    .o_list_table > thead {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+
+        > tr > th {
+            background-color: $sticky-bg;
+        }
+    }
+}
