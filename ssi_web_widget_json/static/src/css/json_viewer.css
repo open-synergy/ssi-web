@@ -1,0 +1,158 @@
+/* ============================================================
+   SSI Web Widget JSON Viewer  —  json_viewer.css
+   ============================================================ */
+
+/* ---- Outer container ---------------------------------------- */
+.o_field_json_viewer {
+    width: 100%;
+}
+
+/* ---- Read-only tree container ------------------------------ */
+.o_field_json_viewer .o_json_viewer_container {
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    overflow-x: auto;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 12px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* ---- Tree list --------------------------------------------- */
+.o_field_json_viewer .o_json_list {
+    list-style: none;
+    padding-left: 20px;
+    margin: 0;
+}
+
+.o_field_json_viewer .o_json_root {
+    padding-left: 0;
+}
+
+.o_field_json_viewer .o_json_node {
+    padding: 2px 0;
+    line-height: 1.6;
+}
+
+/* ---- Toggle icon ------------------------------------------- */
+.o_field_json_viewer .o_json_toggle {
+    cursor: pointer;
+    margin-right: 4px;
+    color: #555;
+    width: 14px;
+    display: inline-block;
+    text-align: center;
+    transition: color 0.15s;
+}
+
+.o_field_json_viewer .o_json_toggle:hover {
+    color: #111;
+}
+
+/* ---- Key label --------------------------------------------- */
+.o_field_json_viewer .o_json_key {
+    color: #881391;
+    font-weight: 600;
+}
+
+/* ---- Colon separator --------------------------------------- */
+.o_field_json_viewer .o_json_colon {
+    color: #555;
+    margin-right: 4px;
+}
+
+/* ---- Scalar value colours ---------------------------------- */
+.o_field_json_viewer .o_json_value_string {
+    color: #c41a16;
+}
+
+.o_field_json_viewer .o_json_value_number {
+    color: #1c00cf;
+}
+
+.o_field_json_viewer .o_json_value_boolean {
+    color: #0000ff;
+    font-weight: 600;
+}
+
+.o_field_json_viewer .o_json_value_null {
+    color: #808080;
+    font-style: italic;
+}
+
+/* ---- Collapsible children ---------------------------------- */
+.o_field_json_viewer .o_json_children {
+    display: block;
+    margin-top: 2px;
+}
+
+/* ---- Summary (item/key count) ------------------------------ */
+.o_field_json_viewer .o_json_summary {
+    color: #888;
+    font-size: 11px;
+    margin-left: 4px;
+}
+
+/* ---- Raw text fallback (invalid JSON) ---------------------- */
+.o_field_json_viewer .o_json_raw_text {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    color: #666;
+    background: #f8f9fa;
+    padding: 8px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    max-height: 300px;
+    overflow-y: auto;
+    margin: 0;
+}
+
+/* ---- Edit mode --------------------------------------------- */
+.o_field_json_viewer .o_json_editor_wrapper {
+    width: 100%;
+}
+
+.o_field_json_viewer .o_json_editor {
+    width: 100%;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 12px;
+    padding: 8px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    resize: vertical;
+    min-height: 100px;
+    box-sizing: border-box;
+    line-height: 1.5;
+}
+
+.o_field_json_viewer .o_json_editor:focus {
+    border-color: #7c7bad;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(124, 123, 173, 0.2);
+}
+
+/* ---- Validation status badge ------------------------------- */
+.o_field_json_viewer .o_json_status {
+    margin-top: 4px;
+    font-size: 11px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    min-height: 16px;
+}
+
+.o_field_json_viewer .o_json_status.o_json_valid {
+    color: #28a745;
+}
+
+.o_field_json_viewer .o_json_status.o_json_invalid {
+    color: #dc3545;
+}
+
+/* ---- Empty placeholder ------------------------------------- */
+.o_field_json_viewer .o_json_empty {
+    color: #aaa;
+    font-style: italic;
+}
