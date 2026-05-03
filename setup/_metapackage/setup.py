@@ -18,6 +18,7 @@ setuptools.setup(
         'odoo14-addon-ssi_web_widget_csv_table',
         'odoo14-addon-ssi_web_widget_json',
         'odoo14-addon-ssi_web_widget_many2onereference_clickable',
+        'odoo14-addon-ssi_web_widget_rjsf',
         'odoo14-addon-ssi_web_widget_whatsapp',
         'odoo14-addon-ssi_web_widget_x2m_excel_download',
     ],
