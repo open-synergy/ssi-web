@@ -1,0 +1,134 @@
+/* Copyright 2026 OpenSynergy Indonesia
+   Copyright 2026 PT. Simetri Sinergi Indonesia
+   License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl). */
+
+/* =========================================================
+   RJSF Widget — container and layout
+   ========================================================= */
+
+.o_field_rjsf {
+    width: 100%;
+}
+
+/* Edit mode: RJSF form container */
+.o_rjsf_form_container {
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 12px 16px;
+    background: #fff;
+    min-height: 60px;
+}
+
+/* Bootstrap-based RJSF fieldset reset — remove double border */
+.o_rjsf_form_container fieldset {
+    border: none;
+    padding: 0;
+    margin: 0 0 8px 0;
+}
+
+.o_rjsf_form_container legend {
+    font-size: 14px;
+    font-weight: 600;
+    padding: 0;
+    margin-bottom: 4px;
+    border: none;
+    width: auto;
+}
+
+/* Compact form controls to match Odoo's style */
+.o_rjsf_form_container .form-group {
+    margin-bottom: 8px;
+}
+
+.o_rjsf_form_container .form-control {
+    height: 32px;
+    padding: 4px 8px;
+    font-size: 13px;
+    border-radius: 3px;
+}
+
+.o_rjsf_form_container textarea.form-control {
+    height: auto;
+    min-height: 64px;
+}
+
+.o_rjsf_form_container .control-label {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+/* Submit button hidden by default — form commits on every change */
+.o_rjsf_form_container .btn-info[type="submit"] {
+    display: none;
+}
+
+/* Required asterisk */
+.o_rjsf_form_container .required {
+    color: #dc3545;
+    margin-left: 2px;
+}
+
+/* Validation error highlight */
+.o_rjsf_form_container .field-error .form-control {
+    border-color: #dc3545;
+}
+
+.o_rjsf_form_container .text-danger {
+    font-size: 11px;
+    margin-top: 2px;
+}
+
+/* Array field toolbar buttons */
+.o_rjsf_form_container .array-item-toolbox {
+    padding-left: 4px;
+}
+
+.o_rjsf_form_container .btn {
+    padding: 2px 8px;
+    font-size: 12px;
+}
+
+/* Readonly mode */
+.o_rjsf_readonly_container {
+    width: 100%;
+}
+
+.o_rjsf_readonly_container pre {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 10px 12px;
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 0;
+    color: #212529;
+}
+
+.o_rjsf_empty {
+    color: #6c757d;
+    font-style: italic;
+    font-size: 13px;
+}
+
+/* Schema config panel (shown when no schema provided) */
+.o_rjsf_no_schema {
+    padding: 10px;
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #856404;
+}
+
+/* Error state */
+.o_rjsf_error {
+    padding: 8px 12px;
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #721c24;
+}
