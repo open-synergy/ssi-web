@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
-    <template id="ssi_web_login.login" inherit_id="web.login" name="SSI Web Login">
+    <template
+        id="ssi_web_login.login"
+        inherit_id="web.login"
+        name="SSI Web Login"
+        priority="99"
+    >
         <xpath expr="//div[@class='form-group field-login']" position="replace">
             <div class="form-group field-login">
                 <label for="login">Username</label>

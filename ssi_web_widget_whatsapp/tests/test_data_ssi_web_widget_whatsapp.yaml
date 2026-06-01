@@ -1,0 +1,11 @@
+scenarios:
+  - name: "ssi_web_widget_whatsapp - Module is installed"
+    steps:
+      - step: "Search for installed module"
+        action: "search"
+        model: "ir.module.module"
+        domain:
+          - ["name", "=", "ssi_web_widget_whatsapp"]
+          - ["state", "=", "installed"]
+        save_as: "module"
+        expect_count: 1

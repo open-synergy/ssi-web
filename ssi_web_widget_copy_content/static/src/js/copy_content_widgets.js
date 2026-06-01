@@ -5,7 +5,7 @@ odoo.define("ssi_web_widget_copy_content.CopyContentWidgets", function (require)
 
     var AbstractField = require("web.AbstractField");
     var fieldRegistry = require("web.field_registry");
-    var core = require("web.core");
+    var core = require("web.core"); // eslint-disable-line no-unused-vars
     var FieldMany2One = require("web.relational_fields").FieldMany2One;
 
     // Utility function to copy text to clipboard
