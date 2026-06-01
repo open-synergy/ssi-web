@@ -1,0 +1,351 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ssi_web_widget_ace_git
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 14.0\n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "(opsional untuk repo publik)"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#: code:addons/ssi_web_widget_ace_git/static/src/xml/ace_git_templates.xml:0
+#, python-format
+msgid "(optional for public repos)"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/xml/ace_git_templates.xml:0
+#, python-format
+msgid ""
+")\n"
+"                    or raw URL\n"
+"                    ("
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "Ambil & Terapkan"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "Ambil File dari GitHub"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "Ambil konten file dari GitHub dan masukkan ke editor"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "An unknown error occurred."
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "Batal"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "Berhasil"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "Cancel"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "Error"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "Failed to Fetch File"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid ""
+"Failed to reach the backend server. Please check the server logs and try "
+"again."
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "Fetch & Apply"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "Fetch File from GitHub"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "Fetch dari GitHub"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "Fetch file content from GitHub and insert into the editor"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "Fetch from GitHub"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "Fetching..."
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "File content successfully fetched from GitHub."
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "Gagal Mengambil File"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid ""
+"Gagal menghubungi server backend. Silakan periksa log server dan coba lagi."
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#: code:addons/ssi_web_widget_ace_git/static/src/xml/ace_git_templates.xml:0
+#, python-format
+msgid "GitHub File URL"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#: code:addons/ssi_web_widget_ace_git/static/src/xml/ace_git_templates.xml:0
+#, python-format
+msgid "GitHub Personal Access Token"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "Harap masukkan URL file GitHub terlebih dahulu."
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "Konten file berhasil diambil dari GitHub."
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid ""
+"Mendukung URL GitHub web (/blob/) atau URL raw (raw.githubusercontent.com)."
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "Mengambil..."
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "Peringatan"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "Please enter a GitHub file URL first."
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/xml/ace_git_templates.xml:0
+#, python-format
+msgid "Required for"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "Required for private repositories. Token is not stored on the server."
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "Success"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/xml/ace_git_templates.xml:0
+#, python-format
+msgid ""
+"Supports GitHub web URL\n"
+"                    ("
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid ""
+"Supports GitHub web URL (/blob/) or raw URL (raw.githubusercontent.com)."
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "Terjadi kesalahan yang tidak diketahui."
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "URL File GitHub"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "Wajib diisi untuk repositori privat. Token tidak disimpan di server."
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/js/ace_git_widget.js:0
+#, python-format
+msgid "Warning"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/xml/ace_git_templates.xml:0
+#, python-format
+msgid "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/xml/ace_git_templates.xml:0
+#, python-format
+msgid "github.com/.../blob/..."
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/xml/ace_git_templates.xml:0
+#, python-format
+msgid "https://github.com/user/repo/blob/main/path/to/file.py"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/xml/ace_git_templates.xml:0
+#, python-format
+msgid "private"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/xml/ace_git_templates.xml:0
+#, python-format
+msgid "raw.githubusercontent.com/..."
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. openerp-web
+#: code:addons/ssi_web_widget_ace_git/static/src/xml/ace_git_templates.xml:0
+#, python-format
+msgid ""
+"repositories.\n"
+"                    Leave empty for public repositories.\n"
+"                    Token is not stored on the server."
+msgstr ""
