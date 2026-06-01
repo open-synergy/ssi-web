@@ -1,0 +1,39 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ssi_web_widget_rjsf
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 14.0\n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: ssi_web_widget_rjsf
+#. openerp-web
+#: code:addons/ssi_web_widget_rjsf/static/src/js/rjsf_widget.js:0
+#, python-format
+msgid "(empty)"
+msgstr ""
+
+#. module: ssi_web_widget_rjsf
+#. openerp-web
+#: code:addons/ssi_web_widget_rjsf/static/src/js/rjsf_widget.js:0
+#, python-format
+msgid ""
+"<b>rjsf widget:</b> no valid <code>schema</code> found. Either set "
+"<code>options='{\"schema_field\":\"field_name\"}'</code> to read from "
+"another field, or provide a static <code>options='{\"schema\":{...}}'</code>"
+" to the field view definition."
+msgstr ""
+
+#. module: ssi_web_widget_rjsf
+#. openerp-web
+#: code:addons/ssi_web_widget_rjsf/static/src/js/rjsf_widget.js:0
+#, python-format
+msgid "RJSF bundle not loaded. Check static assets."
+msgstr ""
