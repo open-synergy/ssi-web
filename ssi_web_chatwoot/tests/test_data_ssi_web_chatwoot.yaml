@@ -1,0 +1,86 @@
+scenarios:
+  - name: "ssi_web_chatwoot - Module is installed"
+    steps:
+      - step: "Search for installed module"
+        action: "search"
+        model: "ir.module.module"
+        domain:
+          - ["name", "=", "ssi_web_chatwoot"]
+          - ["state", "=", "installed"]
+        save_as: "module"
+        expect_count: 1
+
+  - name: "Create Chatwoot Configuration"
+    steps:
+      - step: "Create configuration"
+        action: "create"
+        model: "chatwoot_configuration"
+        save_as: "configuration"
+        values:
+          name: "Test Configuration"
+          code: "/"
+          base_url: "https://chat.example.com"
+          website_token: "test-website-token"
+          active: false
+      - step: "Assert created"
+        action: "assert"
+        target: "configuration"
+        asserts:
+          id:
+            type: "value"
+            operator: "is_truthy"
+          name:
+            type: "value"
+            expected: "Test Configuration"
+          base_url:
+            type: "value"
+            expected: "https://chat.example.com"
+
+  - name: "Edit Chatwoot Configuration Launcher Title"
+    steps:
+      - step: "Create configuration"
+        action: "create"
+        model: "chatwoot_configuration"
+        save_as: "configuration"
+        values:
+          name: "Test Configuration"
+          code: "/"
+          base_url: "https://chat.example.com"
+          website_token: "test-website-token"
+          active: false
+      - step: "Write launcher title"
+        action: "write"
+        target: "configuration"
+        values:
+          launcher_title: "Talk to Us"
+      - step: "Assert launcher title updated"
+        action: "assert"
+        target: "configuration"
+        asserts:
+          launcher_title:
+            type: "value"
+            expected: "Talk to Us"
+
+  - name: "Delete Chatwoot Configuration"
+    steps:
+      - step: "Create configuration"
+        action: "create"
+        model: "chatwoot_configuration"
+        save_as: "configuration"
+        values:
+          name: "Deletable Configuration"
+          code: "/"
+          base_url: "https://chat.example.com"
+          website_token: "test-website-token"
+          active: false
+      - step: "Delete configuration"
+        action: "call"
+        target: "configuration"
+        method: "unlink"
+      - step: "Verify deleted"
+        action: "search"
+        model: "chatwoot_configuration"
+        domain:
+          - ["name", "=", "Deletable Configuration"]
+        save_as: "result"
+        expect_count: 0
