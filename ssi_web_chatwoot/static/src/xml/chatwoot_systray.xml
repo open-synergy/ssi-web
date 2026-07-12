@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates>
+    <t t-name="ssi_web_chatwoot.SystrayItem">
+        <li class="o_mail_systray_item o_chatwoot_systray_item">
+            <a
+                href="#"
+                role="button"
+                class="o_chatwoot_toggler o-no-caret"
+                title="Support Chat"
+            >
+                <i class="fa fa-headphones" role="img" aria-label="Support Chat" />
+                <span class="o_notification_counter badge badge-pill" />
+            </a>
+        </li>
+    </t>
+</templates>

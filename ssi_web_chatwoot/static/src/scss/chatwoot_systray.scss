@@ -1,0 +1,16 @@
+// Copyright 2026 OpenSynergy Indonesia
+// Copyright 2026 PT. Simetri Sinergi Indonesia
+// License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+
+// Hide Chatwoot's built-in launcher bubble: the systray button
+// (.o_chatwoot_toggler) is the only entry point into the widget.
+.woot-widget-bubble,
+.woot--bubble-holder {
+    display: none !important;
+}
+
+// Odoo modals sit around z-index 1050; raise the widget panel above
+// them so it is not obscured when opened while a modal is visible.
+.woot-widget-holder {
+    z-index: 1100 !important;
+}
