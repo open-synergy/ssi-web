@@ -18,6 +18,7 @@ Available addons
 ----------------
 addon | version | maintainers | summary
 --- | --- | --- | ---
+[ssi_web_chatwoot](ssi_web_chatwoot/) | 14.0.1.0.0 |  | SSI Web Chatwoot
 [ssi_web_clear_all_filter](ssi_web_clear_all_filter/) | 14.0.1.1.0 |  | Web Clear All Filter
 [ssi_web_edit_attachment_name](ssi_web_edit_attachment_name/) | 14.0.1.1.0 |  | Web Edit Attachment Name
 [ssi_web_login](ssi_web_login/) | 14.0.1.1.0 |  | SSI Web Login

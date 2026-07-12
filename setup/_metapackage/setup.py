@@ -8,6 +8,7 @@ setuptools.setup(
     description="Meta package for open-synergy-ssi-web Odoo addons",
     version=version,
     install_requires=[
+        'odoo14-addon-ssi_web_chatwoot',
         'odoo14-addon-ssi_web_clear_all_filter',
         'odoo14-addon-ssi_web_edit_attachment_name',
         'odoo14-addon-ssi_web_login',
