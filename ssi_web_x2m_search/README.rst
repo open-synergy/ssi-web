@@ -2,9 +2,9 @@
    :target: http://www.gnu.org/licenses/AGPL-3.0-standalone.html
    :alt: License: AGPL-3
 
-================
+=================
 Web X2Many Search
-================
+=================
 
 Adds the standard Odoo **search bar** inside every One2many and Many2many field
 rendered as a list in a form view.
