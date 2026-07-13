@@ -32,7 +32,7 @@ addon | version | maintainers | summary
 [ssi_web_widget_rjsf](ssi_web_widget_rjsf/) | 14.0.1.1.0 |  | Field widget to edit JSON fields using React JSON Schema Form (RJSF)
 [ssi_web_widget_whatsapp](ssi_web_widget_whatsapp/) | 14.0.1.1.0 |  | Widget WhatsApp Message Button
 [ssi_web_widget_x2m_excel_download](ssi_web_widget_x2m_excel_download/) | 14.0.1.1.0 |  | Widget X2Many Excel Download
-[ssi_web_x2m_search](ssi_web_x2m_search/) | 14.0.1.0.0 |  | Web X2Many Search
+[ssi_web_x2m_search](ssi_web_x2m_search/) | 14.0.1.0.1 |  | Web X2Many Search
 
 [//]: # (end addons)
 
