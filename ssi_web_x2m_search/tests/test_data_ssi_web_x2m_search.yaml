@@ -1,0 +1,22 @@
+scenarios:
+  - name: "ssi_web_x2m_search - Module is installed"
+    steps:
+      - step: "Search for installed module"
+        action: "search"
+        model: "ir.module.module"
+        domain:
+          - ["name", "=", "ssi_web_x2m_search"]
+          - ["state", "=", "installed"]
+        save_as: "module"
+        expect_count: 1
+
+  - name: "ssi_web_x2m_search - Backend assets are registered"
+    steps:
+      - step: "Search for the backend assets template"
+        action: "search"
+        model: "ir.ui.view"
+        domain:
+          - ["key", "=", "ssi_web_x2m_search.assets_backend"]
+          - ["inherit_id.key", "=", "web.assets_backend"]
+        save_as: "assets"
+        expect_count: 1
