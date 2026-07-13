@@ -14,6 +14,11 @@
         margin: 5px 0 0;
 
         .o_searchview_input_container {
+            // Core only grows the input inside this container
+            // (search_view.scss: `.o_searchview_input { flex: 1 0 auto; width: 75px; }`),
+            // so the container itself must grow too, or the input stops at 75px
+            // and the rest of the full-width row stays dead space.
+            flex: 1 1 auto;
             flex-wrap: wrap;
         }
     }
