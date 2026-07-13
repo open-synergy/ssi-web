@@ -1,0 +1,27 @@
+/* Copyright 2026 OpenSynergy Indonesia
+   Copyright 2026 PT. Simetri Sinergi Indonesia
+   License AGPL-3.0 or later (https://www.gnu.org/licenses/AGPL). */
+
+// Scoped to the x2many control panel only, so that the main control panel and
+// the styling other modules (muk_web_theme) apply to it are left untouched.
+.o_x2m_control_panel {
+    .o_x2m_search {
+        display: flex;
+        flex: 0 1 auto;
+        align-items: center;
+        min-width: 0;
+        margin: 5px 8px 0;
+
+        .o_searchview_input_container {
+            flex-wrap: wrap;
+        }
+    }
+
+    @include media-breakpoint-down(sm) {
+        .o_x2m_search {
+            flex: 1 1 100%;
+            margin: 5px 0 0;
+            order: 1;
+        }
+    }
+}

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2026 OpenSynergy Indonesia
+     Copyright 2026 PT. Simetri Sinergi Indonesia
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/AGPL). -->
+<templates>
+    <!-- Primary inheritance: this creates a NEW template instead of overriding
+         web.ControlPanelX2Many, so x2many fields without search keep using the
+         standard control panel of the framework. -->
+    <t
+        t-name="ssi_web_x2m_search.ControlPanelX2ManySearch"
+        t-inherit="web.ControlPanelX2Many"
+        t-inherit-mode="primary"
+        owl="1"
+    >
+        <xpath expr="//div[hasclass('o_cp_pager')]" position="before">
+            <div
+                t-if="props.searchModel"
+                class="o_x2m_search o_searchview"
+                role="search"
+            >
+                <SearchBar fields="fields" />
+            </div>
+        </xpath>
+    </t>
+</templates>
