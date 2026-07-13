@@ -22,6 +22,7 @@ setuptools.setup(
         'odoo14-addon-ssi_web_widget_rjsf',
         'odoo14-addon-ssi_web_widget_whatsapp',
         'odoo14-addon-ssi_web_widget_x2m_excel_download',
+        'odoo14-addon-ssi_web_x2m_search',
     ],
     classifiers=[
         'Programming Language :: Python',
