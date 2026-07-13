@@ -9,6 +9,9 @@ Web X2Many Search
 Adds the standard Odoo **search bar** inside every One2many and Many2many field
 rendered as a list in a form view.
 
+The search bar occupies its own full-width row, above the field's
+``Add a line`` button and pager.
+
 Typing in the search bar opens the usual autocompletion dropdown (*Search Name
 for: budi*), and validating it creates a search facet, exactly like the search
 bar of a regular list view. Several facets can be combined, and each facet can

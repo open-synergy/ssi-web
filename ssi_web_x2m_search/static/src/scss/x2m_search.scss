@@ -7,21 +7,14 @@
 .o_x2m_control_panel {
     .o_x2m_search {
         display: flex;
-        flex: 0 1 auto;
+        flex: 1 1 100%; // force a full row of its own
+        order: -1; // first row, above the buttons + pager
         align-items: center;
         min-width: 0;
-        margin: 5px 8px 0;
+        margin: 5px 0 0;
 
         .o_searchview_input_container {
             flex-wrap: wrap;
-        }
-    }
-
-    @include media-breakpoint-down(sm) {
-        .o_x2m_search {
-            flex: 1 1 100%;
-            margin: 5px 0 0;
-            order: 1;
         }
     }
 }
