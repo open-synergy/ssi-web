@@ -103,8 +103,24 @@ Presentation
 +-------------------------+----------+---------------------------------+-----------------------------------------------+
 | ``default_zoom``        | no       | ``1``                           | Column width multiplier, clamped to 0.5 - 4   |
 +-------------------------+----------+---------------------------------+-----------------------------------------------+
-| ``event_open_popup``    | no       |                                 | Form view id; clicking a bar opens a dialog   |
+| ``event_open_popup``    | no       | ``0``                           | Clicking a bar opens a dialog instead of      |
+|                         |          |                                 | switching to the form view                    |
 +-------------------------+----------+---------------------------------+-----------------------------------------------+
+| ``form_view_id``        | no       | the default form view           | XML id of the form view the dialog shows      |
++-------------------------+----------+---------------------------------+-----------------------------------------------+
+
+``form_view_id`` is only read when ``event_open_popup`` is enabled, and setting
+one without the other is refused when the view is saved. It is written as an XML
+id, because the database id of a view is not knowable when a module ships it:
+
+.. code-block:: xml
+
+    <ssi_gantt date_start="date_assign" date_stop="date_end"
+               event_open_popup="1" form_view_id="project.view_task_form2"/>
+
+The view it names has to exist, be a form view, and be a form view of the model
+the Gantt view is on; a view that is none of these is refused when the view is
+saved rather than silently opening the wrong form.
 
 The supported decorations are ``decoration-danger``, ``decoration-warning``,
 ``decoration-info``, ``decoration-success``, ``decoration-primary``,

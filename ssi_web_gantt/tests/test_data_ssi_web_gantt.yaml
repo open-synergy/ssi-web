@@ -246,3 +246,131 @@ scenarios:
           view_id.type:
             type: "value"
             expected: "ssi_gantt"
+
+  - name: "ssi_web_gantt - event_open_popup is a boolean"
+    steps:
+      - step: "Create a view asking for the popup without naming a form view"
+        action: "create"
+        model: "ir.ui.view"
+        save_as: "view"
+        values:
+          name: "Partner SSI Gantt Popup Default Form"
+          model: "res.partner"
+          type: "ssi_gantt"
+          arch: |
+            <ssi_gantt
+                date_start="create_date"
+                date_stop="write_date"
+                event_open_popup="1"
+            />
+      - step: "Assert the arch was accepted"
+        action: "assert"
+        target: "view"
+        asserts:
+          type:
+            type: "value"
+            expected: "ssi_gantt"
+
+  - name: "ssi_web_gantt - form_view_id accepts an XML id"
+    steps:
+      - step: "Create a view naming a form view of its own model"
+        action: "create"
+        model: "ir.ui.view"
+        save_as: "view"
+        values:
+          name: "Partner SSI Gantt Popup Custom Form"
+          model: "res.partner"
+          type: "ssi_gantt"
+          arch: |
+            <ssi_gantt
+                date_start="create_date"
+                date_stop="write_date"
+                event_open_popup="1"
+                form_view_id="base.view_partner_form"
+            />
+      - step: "Assert the arch was accepted"
+        action: "assert"
+        target: "view"
+        asserts:
+          type:
+            type: "value"
+            expected: "ssi_gantt"
+
+  - name: "ssi_web_gantt - form_view_id pointing nowhere is rejected"
+    steps:
+      - step: "Create a view whose form_view_id XML id does not exist"
+        action: "create"
+        model: "ir.ui.view"
+        expect_error:
+          type: "ValidationError"
+          message_contains: "form_view_id"
+        values:
+          name: "Partner SSI Gantt Popup Missing Form"
+          model: "res.partner"
+          type: "ssi_gantt"
+          arch: |
+            <ssi_gantt
+                date_start="create_date"
+                date_stop="write_date"
+                event_open_popup="1"
+                form_view_id="base.no_such_view_at_all"
+            />
+
+  - name: "ssi_web_gantt - form_view_id of a non form view is rejected"
+    steps:
+      - step: "Create a view whose form_view_id points to a tree view"
+        action: "create"
+        model: "ir.ui.view"
+        expect_error:
+          type: "ValidationError"
+          message_contains: "form_view_id"
+        values:
+          name: "Partner SSI Gantt Popup Tree View"
+          model: "res.partner"
+          type: "ssi_gantt"
+          arch: |
+            <ssi_gantt
+                date_start="create_date"
+                date_stop="write_date"
+                event_open_popup="1"
+                form_view_id="base.view_partner_tree"
+            />
+
+  - name: "ssi_web_gantt - form_view_id of another model is rejected"
+    steps:
+      - step: "Create a res.partner view naming a res.users form view"
+        action: "create"
+        model: "ir.ui.view"
+        expect_error:
+          type: "ValidationError"
+          message_contains: "form_view_id"
+        values:
+          name: "Partner SSI Gantt Popup Foreign Form"
+          model: "res.partner"
+          type: "ssi_gantt"
+          arch: |
+            <ssi_gantt
+                date_start="create_date"
+                date_stop="write_date"
+                event_open_popup="1"
+                form_view_id="base.view_users_form"
+            />
+
+  - name: "ssi_web_gantt - form_view_id without event_open_popup is rejected"
+    steps:
+      - step: "Create a view naming a form view but not asking for the popup"
+        action: "create"
+        model: "ir.ui.view"
+        expect_error:
+          type: "ValidationError"
+          message_contains: "event_open_popup"
+        values:
+          name: "Partner SSI Gantt Form Without Popup"
+          model: "res.partner"
+          type: "ssi_gantt"
+          arch: |
+            <ssi_gantt
+                date_start="create_date"
+                date_stop="write_date"
+                form_view_id="base.view_partner_form"
+            />

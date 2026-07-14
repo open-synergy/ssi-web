@@ -104,7 +104,12 @@ odoo.define("ssi_web_gantt.GanttView", function (require) {
             this.controllerParams.defaultZoom = defaultZoom;
             this.controllerParams.scales = scales;
             this.controllerParams.scaleLabels = SCALE_LABELS;
-            this.controllerParams.openPopupAction = attrs.event_open_popup;
+            this.controllerParams.openPopup = toBool(attrs.event_open_popup, false);
+            // The server rewrites form_view_id from an XML id into a database
+            // id, so a number is all that can arrive here. An unresolvable id
+            // falls back to the default form view rather than to view id NaN.
+            this.controllerParams.formViewId =
+                parseInt(attrs.form_view_id, 10) || false;
             this.controllerParams.actionContext = params.action
                 ? params.action.context
                 : {};
