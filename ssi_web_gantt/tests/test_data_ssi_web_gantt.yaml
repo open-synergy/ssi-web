@@ -1,0 +1,248 @@
+options:
+  auto_refresh: true
+
+scenarios:
+  - name: "ssi_web_gantt - Module is installed"
+    steps:
+      - step: "Search for installed module"
+        action: "search"
+        model: "ir.module.module"
+        domain:
+          - ["name", "=", "ssi_web_gantt"]
+          - ["state", "=", "installed"]
+        save_as: "module"
+        expect_count: 1
+
+  - name: "ssi_web_gantt - Backend assets are registered"
+    steps:
+      - step: "Search for the backend assets template"
+        action: "search"
+        model: "ir.ui.view"
+        domain:
+          - ["key", "=", "ssi_web_gantt.assets_backend"]
+          - ["inherit_id.key", "=", "web.assets_backend"]
+        save_as: "assets"
+        expect_count: 1
+
+  - name: "ssi_web_gantt - Minimal arch passes validation"
+    steps:
+      - step: "Create a minimal ssi_gantt view on res.partner"
+        action: "create"
+        model: "ir.ui.view"
+        save_as: "view"
+        values:
+          name: "Partner SSI Gantt Minimal"
+          model: "res.partner"
+          type: "ssi_gantt"
+          arch: |
+            <ssi_gantt date_start="create_date" date_stop="write_date" />
+      - step: "Assert the view is stored as an ssi_gantt view"
+        action: "assert"
+        target: "view"
+        asserts:
+          id:
+            type: "value"
+            operator: "is_truthy"
+          type:
+            type: "value"
+            expected: "ssi_gantt"
+          model:
+            type: "value"
+            expected: "res.partner"
+
+  - name: "ssi_web_gantt - View type is inferred from the root tag"
+    steps:
+      - step: "Create a view without setting type explicitly"
+        action: "create"
+        model: "ir.ui.view"
+        save_as: "view"
+        values:
+          name: "Partner SSI Gantt Inferred Type"
+          model: "res.partner"
+          arch: |
+            <ssi_gantt
+                date_start="create_date"
+                date_delay="color"
+                delay_unit="days"
+            />
+      - step: "Assert type was inferred from the root tag"
+        action: "assert"
+        target: "view"
+        asserts:
+          type:
+            type: "value"
+            expected: "ssi_gantt"
+
+  - name: "ssi_web_gantt - Full arch passes validation"
+    steps:
+      - step: "Create a view using every supported attribute"
+        action: "create"
+        model: "ir.ui.view"
+        save_as: "view"
+        values:
+          name: "Partner SSI Gantt Full"
+          model: "res.partner"
+          type: "ssi_gantt"
+          arch: |
+            <ssi_gantt
+                date_start="create_date"
+                date_stop="write_date"
+                date_stop_inclusive="0"
+                default_group_by="parent_id"
+                progress="color"
+                color="color"
+                decoration-danger="active == False"
+                decoration-info="is_company == True"
+                default_scale="week"
+                scales="day,week,month,quarter"
+                default_zoom="1"
+                dependency_model="res.partner"
+                dependency_predecessor_field="parent_id"
+                dependency_successor_field="parent_id"
+                dependency_type_field="type"
+                dependency_lag_field="color"
+                dependency_lag_unit="days"
+                dependency_domain="[]"
+                dependency_type_map="fs:finish_start|end_start;ss:start_start"
+                dependency_type_default="fs"
+            >
+                <field name="active" />
+                <field name="is_company" />
+                <field name="email" />
+                <templates>
+                    <t t-name="gantt-item">
+                        <strong><t t-esc="record.display_name" /></strong>
+                    </t>
+                </templates>
+            </ssi_gantt>
+      - step: "Assert the full arch was accepted and stored"
+        action: "assert"
+        target: "view"
+        asserts:
+          type:
+            type: "value"
+            expected: "ssi_gantt"
+          arch_db:
+            type: "value"
+            operator: "contains"
+            expected: "dependency_predecessor_field"
+
+  - name: "ssi_web_gantt - Mode B arch passes validation"
+    steps:
+      - step: "Create a view using the x2many dependency fallback"
+        action: "create"
+        model: "ir.ui.view"
+        save_as: "view"
+        values:
+          name: "Partner SSI Gantt Mode B"
+          model: "res.partner"
+          type: "ssi_gantt"
+          arch: |
+            <ssi_gantt
+                date_start="create_date"
+                date_stop="write_date"
+                dependency_field="child_ids"
+                dependency_field_direction="successor"
+            >
+                <field name="child_ids" />
+            </ssi_gantt>
+      - step: "Assert the Mode B arch was accepted"
+        action: "assert"
+        target: "view"
+        asserts:
+          type:
+            type: "value"
+            expected: "ssi_gantt"
+
+  - name: "ssi_web_gantt - Unknown field in arch is rejected"
+    steps:
+      - step: "Create a view whose date_start does not exist on the model"
+        action: "create"
+        model: "ir.ui.view"
+        expect_error:
+          type: "ValidationError"
+          message_contains: "does not exist"
+        values:
+          name: "Partner SSI Gantt Unknown Field"
+          model: "res.partner"
+          type: "ssi_gantt"
+          arch: |
+            <ssi_gantt
+                date_start="no_such_field_at_all"
+                date_stop="write_date"
+            />
+
+  - name: "ssi_web_gantt - date_start is mandatory"
+    steps:
+      - step: "Create a view without date_start"
+        action: "create"
+        model: "ir.ui.view"
+        expect_error:
+          type: "ValidationError"
+        values:
+          name: "Partner SSI Gantt Without Date Start"
+          model: "res.partner"
+          type: "ssi_gantt"
+          arch: |
+            <ssi_gantt date_stop="write_date" />
+
+  - name: "ssi_web_gantt - date_stop or date_delay is mandatory"
+    steps:
+      - step: "Create a view with neither date_stop nor date_delay"
+        action: "create"
+        model: "ir.ui.view"
+        expect_error:
+          type: "ValidationError"
+        values:
+          name: "Partner SSI Gantt Without End"
+          model: "res.partner"
+          type: "ssi_gantt"
+          arch: |
+            <ssi_gantt date_start="create_date" />
+
+  - name: "ssi_web_gantt - Action view_mode accepts ssi_gantt"
+    steps:
+      - step: "Create an ssi_gantt view on res.partner"
+        action: "create"
+        model: "ir.ui.view"
+        save_as: "view"
+        values:
+          name: "Partner SSI Gantt For Action"
+          model: "res.partner"
+          type: "ssi_gantt"
+          arch: |
+            <ssi_gantt date_start="create_date" date_stop="write_date" />
+      - step: "Create an action whose view_mode contains ssi_gantt"
+        action: "create"
+        model: "ir.actions.act_window"
+        save_as: "action"
+        values:
+          name: "Partner SSI Gantt Action"
+          res_model: "res.partner"
+          view_mode: "tree,form,ssi_gantt"
+      - step: "Assert the action view_mode was stored"
+        action: "assert"
+        target: "action"
+        asserts:
+          view_mode:
+            type: "value"
+            expected: "tree,form,ssi_gantt"
+      - step: "Pin the ssi_gantt view on the action"
+        action: "create"
+        model: "ir.actions.act_window.view"
+        save_as: "action_view"
+        values:
+          act_window_id: "REC: action.id"
+          view_id: "REC: view.id"
+          view_mode: "ssi_gantt"
+          sequence: 30
+      - step: "Assert the pinned view is an ssi_gantt view"
+        action: "assert"
+        target: "action_view"
+        asserts:
+          view_mode:
+            type: "value"
+            expected: "ssi_gantt"
+          view_id.type:
+            type: "value"
+            expected: "ssi_gantt"

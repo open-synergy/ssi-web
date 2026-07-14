@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Copyright 2026 OpenSynergy Indonesia
+     Copyright 2026 PT. Simetri Sinergi Indonesia
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/AGPL). -->
+<templates id="template" xml:space="preserve">
+
+    <t t-name="ssi_web_gantt.GanttView">
+        <div class="o_ssi_gantt_view">
+            <div class="o_ssi_gantt_sidebar">
+                <div class="o_ssi_gantt_sidebar_header" />
+                <div class="o_ssi_gantt_sidebar_body" />
+            </div>
+            <div class="o_ssi_gantt_pane">
+                <div class="o_ssi_gantt_canvas">
+                    <div class="o_ssi_gantt_header" />
+                    <div class="o_ssi_gantt_rows" />
+                    <svg
+                        class="o_ssi_gantt_arrows"
+                        xmlns="http://www.w3.org/2000/svg"
+                    />
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="ssi_web_gantt.Buttons">
+        <div class="o_ssi_gantt_buttons">
+            <button
+                type="button"
+                class="btn btn-secondary o_ssi_gantt_button_today"
+            >Today</button>
+            <div class="btn-group ml-2" role="group">
+                <t t-foreach="widget.scales" t-as="scale">
+                    <button
+                        type="button"
+                        class="btn btn-secondary o_ssi_gantt_button_scale"
+                        t-att-data-scale="scale"
+                        t-att-class="{'active': scale === widget.scale}"
+                        t-esc="widget.scaleLabels[scale]"
+                    />
+                </t>
+            </div>
+            <div class="btn-group ml-2" role="group">
+                <button
+                    type="button"
+                    class="btn btn-secondary o_ssi_gantt_button_zoom_out"
+                    title="Zoom out"
+                >
+                    <i class="fa fa-search-minus" role="img" aria-label="Zoom out" />
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-secondary o_ssi_gantt_button_zoom_in"
+                    title="Zoom in"
+                >
+                    <i class="fa fa-search-plus" role="img" aria-label="Zoom in" />
+                </button>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="ssi_web_gantt.Empty">
+        <div class="o_ssi_gantt_empty o_view_nocontent">
+            <div class="o_nocontent_help">
+                <p class="o_view_nocontent_smiling_face">
+                    No record to display on the timeline
+                </p>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="ssi_web_gantt.ItemTooltip">
+        <div class="o_ssi_gantt_tooltip">
+            <strong t-esc="record.display_name" />
+            <div class="o_ssi_gantt_tooltip_dates">
+                <span t-esc="start" />
+                <t t-if="!milestone">
+                    <span> - </span>
+                    <span t-esc="finish" />
+                </t>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="ssi_web_gantt.ArrowDefs">
+        <defs>
+            <marker
+                id="ssi_gantt_arrowhead"
+                class="o_ssi_gantt_marker"
+                markerWidth="8"
+                markerHeight="6"
+                refX="8"
+                refY="3"
+                orient="auto"
+                markerUnits="userSpaceOnUse"
+            >
+                <polygon points="0 0, 8 3, 0 6" />
+            </marker>
+            <marker
+                id="ssi_gantt_arrowhead_danger"
+                class="o_ssi_gantt_marker_danger"
+                markerWidth="8"
+                markerHeight="6"
+                refX="8"
+                refY="3"
+                orient="auto"
+                markerUnits="userSpaceOnUse"
+            >
+                <polygon points="0 0, 8 3, 0 6" />
+            </marker>
+        </defs>
+    </t>
+
+</templates>

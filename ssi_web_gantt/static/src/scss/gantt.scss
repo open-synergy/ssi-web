@@ -1,0 +1,263 @@
+// Copyright 2026 OpenSynergy Indonesia
+// Copyright 2026 PT. Simetri Sinergi Indonesia
+// License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+
+$o-ssi-gantt-row-height: 32px;
+$o-ssi-gantt-header-height: 48px;
+$o-ssi-gantt-sidebar-width: 260px;
+$o-ssi-gantt-border: 1px solid #dee2e6;
+
+$o-ssi-gantt-colors: #1f77b4, #ff7f0e, #2ca02c, #d62728, #9467bd, #8c564b, #e377c2,
+    #7f7f7f, #bcbd22, #17becf, #aec7e8, #ffbb78;
+
+.o_ssi_gantt_view {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    // A Gantt chart is an artifact of time running left to right. Without this,
+    // the absolute `left` of every bar would be read from the right edge.
+    direction: ltr;
+}
+
+.o_ssi_gantt_view.o_ssi_gantt_is_empty {
+    > .o_ssi_gantt_sidebar,
+    > .o_ssi_gantt_pane {
+        display: none;
+    }
+}
+
+.o_ssi_gantt_sidebar {
+    flex: 0 0 auto;
+    width: $o-ssi-gantt-sidebar-width;
+    overflow: hidden;
+    border-right: $o-ssi-gantt-border;
+    background-color: #fff;
+}
+
+.o_ssi_gantt_sidebar_header {
+    height: $o-ssi-gantt-header-height;
+    border-bottom: $o-ssi-gantt-border;
+    background-color: #f8f9fa;
+}
+
+.o_ssi_gantt_sidebar_row {
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    border-bottom: $o-ssi-gantt-border;
+    font-size: 13px;
+}
+
+.o_ssi_gantt_sidebar_group {
+    font-weight: bold;
+    background-color: #f1f3f5;
+}
+
+.o_ssi_gantt_pane {
+    position: relative;
+    flex: 1 1 auto;
+    overflow: auto;
+}
+
+.o_ssi_gantt_canvas {
+    position: relative;
+}
+
+.o_ssi_gantt_header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background-color: #f8f9fa;
+    border-bottom: $o-ssi-gantt-border;
+}
+
+.o_ssi_gantt_major,
+.o_ssi_gantt_minor {
+    position: absolute;
+    overflow: hidden;
+    text-align: center;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    border-left: $o-ssi-gantt-border;
+}
+
+.o_ssi_gantt_major {
+    top: 0;
+    height: $o-ssi-gantt-header-height * 0.5;
+    line-height: $o-ssi-gantt-header-height * 0.5;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.o_ssi_gantt_minor {
+    top: $o-ssi-gantt-header-height * 0.5;
+    height: $o-ssi-gantt-header-height * 0.5;
+    line-height: $o-ssi-gantt-header-height * 0.5;
+    font-size: 11px;
+    color: #6c757d;
+}
+
+.o_ssi_gantt_minor_today {
+    color: #017e84;
+    font-weight: bold;
+}
+
+.o_ssi_gantt_rows {
+    position: absolute;
+    left: 0;
+    z-index: 0;
+}
+
+.o_ssi_gantt_row {
+    position: absolute;
+    left: 0;
+    border-bottom: $o-ssi-gantt-border;
+}
+
+.o_ssi_gantt_row_group {
+    background-color: #f1f3f5;
+}
+
+.o_ssi_gantt_row_undated {
+    background-color: #f8f9fa;
+    opacity: 0.6;
+}
+
+.o_ssi_gantt_today_line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    border-left: 1px dashed #017e84;
+    z-index: 1;
+}
+
+.o_ssi_gantt_bar {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    z-index: 3;
+    padding: 0 4px;
+    border-radius: 3px;
+    background-color: #6c757d;
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+
+    &:hover {
+        filter: brightness(1.1);
+    }
+}
+
+.o_ssi_gantt_bar_label {
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.o_ssi_gantt_progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 0;
+    background-color: rgba(0, 0, 0, 0.25);
+}
+
+.o_ssi_gantt_milestone {
+    padding: 0;
+    border-radius: 0;
+    background-color: #343a40;
+    transform: rotate(45deg);
+}
+
+@each $color in $o-ssi-gantt-colors {
+    $index: index($o-ssi-gantt-colors, $color) - 1;
+
+    .o_ssi_gantt_color_#{$index} {
+        background-color: $color;
+    }
+}
+
+.o_ssi_gantt_decoration_danger {
+    background-color: #dc3545;
+}
+
+.o_ssi_gantt_decoration_warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.o_ssi_gantt_decoration_info {
+    background-color: #17a2b8;
+}
+
+.o_ssi_gantt_decoration_success {
+    background-color: #28a745;
+}
+
+.o_ssi_gantt_decoration_primary {
+    background-color: #007bff;
+}
+
+.o_ssi_gantt_decoration_secondary {
+    background-color: #6c757d;
+}
+
+.o_ssi_gantt_decoration_muted {
+    background-color: #adb5bd;
+    color: #495057;
+}
+
+.o_ssi_gantt_arrows {
+    position: absolute;
+    left: 0;
+    z-index: 4;
+    // Without this the overlay covers every bar and no click, hover or popover
+    // ever fires. Pointer events are given back to the arrows themselves below.
+    pointer-events: none;
+    overflow: visible;
+}
+
+.o_ssi_gantt_arrow {
+    fill: none;
+    stroke: #495057;
+    stroke-width: 1.5px;
+    pointer-events: stroke;
+}
+
+.o_ssi_gantt_arrow_danger {
+    stroke: #dc3545;
+    stroke-width: 2px;
+}
+
+// An SVG 1.1 marker does not inherit the stroke of the path that references it,
+// so each state needs its own marker with its own fill.
+.o_ssi_gantt_marker {
+    fill: #495057;
+}
+
+.o_ssi_gantt_marker_danger {
+    fill: #dc3545;
+}
+
+.o_ssi_gantt_arrow_label {
+    font-size: 10px;
+    fill: #495057;
+    // A halo keeps the label readable above the grid and the bars.
+    paint-order: stroke;
+    stroke: #fff;
+    stroke-width: 3px;
+}
+
+.o_ssi_gantt_tooltip_dates {
+    color: #6c757d;
+    font-size: 12px;
+}
