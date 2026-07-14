@@ -31,6 +31,50 @@ msgid ""
 "\n"
 "Context: Validate ssi_gantt view architecture\n"
 "Database ID: %s\n"
+"Problem: Attribute form_view_id %s does not point to any view\n"
+"Solution: Set form_view_id to the XML id of an existing form view of model %s\n"
+msgstr ""
+
+#. module: ssi_web_gantt
+#: code:addons/ssi_web_gantt/models/ir_ui_view.py:0
+#, python-format
+msgid ""
+"\n"
+"Context: Validate ssi_gantt view architecture\n"
+"Database ID: %s\n"
+"Problem: Attribute form_view_id %s points to a %s view, not to a form view\n"
+"Solution: Set form_view_id to the XML id of a form view of model %s\n"
+msgstr ""
+
+#. module: ssi_web_gantt
+#: code:addons/ssi_web_gantt/models/ir_ui_view.py:0
+#, python-format
+msgid ""
+"\n"
+"Context: Validate ssi_gantt view architecture\n"
+"Database ID: %s\n"
+"Problem: Attribute form_view_id %s points to a form view of model %s\n"
+"Solution: Set form_view_id to the XML id of a form view of model %s\n"
+msgstr ""
+
+#. module: ssi_web_gantt
+#: code:addons/ssi_web_gantt/models/ir_ui_view.py:0
+#, python-format
+msgid ""
+"\n"
+"Context: Validate ssi_gantt view architecture\n"
+"Database ID: %s\n"
+"Problem: Attribute form_view_id is set while event_open_popup is not enabled\n"
+"Solution: Add event_open_popup=\"1\" to the ssi_gantt tag, or remove form_view_id\n"
+msgstr ""
+
+#. module: ssi_web_gantt
+#: code:addons/ssi_web_gantt/models/ir_ui_view.py:0
+#, python-format
+msgid ""
+"\n"
+"Context: Validate ssi_gantt view architecture\n"
+"Database ID: %s\n"
 "Problem: Attributes date_stop and date_delay are both missing on the ssi_gantt tag\n"
 "Solution: Add either date_stop or date_delay to the ssi_gantt tag\n"
 msgstr ""
