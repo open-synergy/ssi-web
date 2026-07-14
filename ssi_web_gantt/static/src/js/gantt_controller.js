@@ -32,7 +32,8 @@ odoo.define("ssi_web_gantt.GanttController", function (require) {
             this.zoom = params.defaultZoom;
             this.scales = params.scales;
             this.scaleLabels = params.scaleLabels;
-            this.openPopupAction = params.openPopupAction;
+            this.openPopup = params.openPopup;
+            this.formViewId = params.formViewId;
             this.actionContext = params.actionContext;
         },
 
@@ -158,12 +159,14 @@ odoo.define("ssi_web_gantt.GanttController", function (require) {
         _onOpenRecord: function (event) {
             event.stopPropagation();
             const resId = event.data.id;
-            if (this.openPopupAction) {
+            if (this.openPopup) {
                 new dialogs.FormViewDialog(this, {
                     res_model: this.modelName,
                     res_id: resId,
                     context: this.actionContext,
-                    view_id: Number(this.openPopupAction),
+                    // False makes FormViewDialog fall back to the default form
+                    // view of the model.
+                    view_id: this.formViewId || false,
                     readonly: !this.model.rights.write,
                     on_saved: () => this.reload(),
                 }).open();
