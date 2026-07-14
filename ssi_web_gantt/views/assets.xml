@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2026 OpenSynergy Indonesia
+     Copyright 2026 PT. Simetri Sinergi Indonesia
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/AGPL). -->
+<odoo>
+    <template
+        id="assets_backend"
+        name="ssi_web_gantt assets"
+        inherit_id="web.assets_backend"
+    >
+        <xpath expr="." position="inside">
+            <link rel="stylesheet" href="/ssi_web_gantt/static/src/scss/gantt.scss" />
+            <script
+                type="text/javascript"
+                src="/ssi_web_gantt/static/src/js/gantt_utils.js"
+            />
+            <script
+                type="text/javascript"
+                src="/ssi_web_gantt/static/src/js/gantt_arrow.js"
+            />
+            <script
+                type="text/javascript"
+                src="/ssi_web_gantt/static/src/js/gantt_model.js"
+            />
+            <script
+                type="text/javascript"
+                src="/ssi_web_gantt/static/src/js/gantt_renderer.js"
+            />
+            <script
+                type="text/javascript"
+                src="/ssi_web_gantt/static/src/js/gantt_controller.js"
+            />
+            <script
+                type="text/javascript"
+                src="/ssi_web_gantt/static/src/js/gantt_view.js"
+            />
+        </xpath>
+    </template>
+</odoo>
