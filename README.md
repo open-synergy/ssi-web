@@ -23,6 +23,7 @@ addon | version | maintainers | summary
 --- | --- | --- | ---
 [ssi_web_login](ssi_web_login/) | 19.0.1.0.0 |  | SSI Web Login
 [ssi_web_sticky_list_header](ssi_web_sticky_list_header/) | 19.0.1.0.0 |  | Web Sticky List Header
+[ssi_web_widget_json](ssi_web_widget_json/) | 19.0.1.0.0 |  | Web Widget JSON Viewer
 
 [//]: # (end addons)
 
