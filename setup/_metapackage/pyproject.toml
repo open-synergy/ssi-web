@@ -1,0 +1,11 @@
+[project]
+name = "odoo-addons-open-synergy-ssi-web"
+version = "19.0.20260718.0"
+dependencies = [
+    "odoo-addon-ssi_web_sticky_list_header==19.0.*",
+]
+classifiers=[
+    "Programming Language :: Python",
+    "Framework :: Odoo",
+    "Framework :: Odoo :: 19.0",
+]

@@ -17,7 +17,11 @@ Kustomisasi dan utilitas web/UI generik untuk Odoo
 
 [//]: # (addons)
 
-This part will be replaced when running the oca-gen-addons-table script from OCA/maintainer-tools.
+Available addons
+----------------
+addon | version | maintainers | summary
+--- | --- | --- | ---
+[ssi_web_sticky_list_header](ssi_web_sticky_list_header/) | 19.0.1.0.0 |  | Web Sticky List Header
 
 [//]: # (end addons)
 
