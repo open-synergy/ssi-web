@@ -25,6 +25,7 @@ addon | version | maintainers | summary
 [ssi_web_sticky_list_header](ssi_web_sticky_list_header/) | 19.0.1.0.0 |  | Web Sticky List Header
 [ssi_web_widget_csv_table](ssi_web_widget_csv_table/) | 19.0.1.0.0 |  | Web Widget CSV Table
 [ssi_web_widget_json](ssi_web_widget_json/) | 19.0.1.0.0 |  | Web Widget JSON Viewer
+[ssi_web_widget_many2onereference_clickable](ssi_web_widget_many2onereference_clickable/) | 19.0.1.0.0 |  | Widget Many2one Reference Clickable
 
 [//]: # (end addons)
 
