@@ -6,7 +6,7 @@
         name="SSI Web Login"
         priority="99"
     >
-        <xpath expr="//div[@class='mb-3 field-login']" position="replace">
+        <xpath expr="//div[hasclass('mb-3', 'field-login')]" position="replace">
             <div class="mb-3 field-login">
                 <label
                     for="login"
