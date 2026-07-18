@@ -1,7 +1,8 @@
 [project]
 name = "odoo-addons-open-synergy-ssi-web"
-version = "19.0.20260718.5"
+version = "19.0.20260718.6"
 dependencies = [
+    "odoo-addon-ssi_web_edit_attachment_name==19.0.*",
     "odoo-addon-ssi_web_login==19.0.*",
     "odoo-addon-ssi_web_sticky_list_header==19.0.*",
     "odoo-addon-ssi_web_widget_csv_table==19.0.*",
