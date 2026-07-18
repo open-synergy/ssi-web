@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+    <t t-name="ssi_web_widget_json.JsonViewerNode">
+        <t t-if="props.value === null">
+            <span class="o_json_value_null">null</span>
+        </t>
+        <t t-elif="typeof props.value === 'boolean'">
+            <span class="o_json_value_boolean" t-esc="String(props.value)" />
+        </t>
+        <t t-elif="typeof props.value === 'number'">
+            <span class="o_json_value_number" t-esc="String(props.value)" />
+        </t>
+        <t t-elif="typeof props.value === 'string'">
+            <span class="o_json_value_string" t-esc="quotedValue" />
+        </t>
+        <t t-elif="entries.length === 0">
+            <span class="o_json_empty_obj" t-esc="emptyBraces" />
+        </t>
+        <t t-elif="props.isRoot">
+            <ul class="o_json_list o_json_root">
+                <t t-call="ssi_web_widget_json.JsonViewerNode.Entries" />
+            </ul>
+        </t>
+        <t t-else="">
+            <span
+                t-attf-class="o_json_toggle fa {{state.collapsed ? 'fa-caret-right' : 'fa-caret-down'}}"
+                t-on-click="toggle"
+                t-att-title="toggleTitle"
+            />
+            <span class="o_json_summary" t-esc="summary" />
+            <div t-if="!state.collapsed" class="o_json_children">
+                <ul class="o_json_list">
+                    <t t-call="ssi_web_widget_json.JsonViewerNode.Entries" />
+                </ul>
+            </div>
+        </t>
+    </t>
+
+    <t t-name="ssi_web_widget_json.JsonViewerNode.Entries">
+        <t t-foreach="entries" t-as="entry" t-key="entry[0]">
+            <li class="o_json_node">
+                <span class="o_json_key" t-esc="keyLabel(entry[0])" />
+                <span class="o_json_colon">: </span>
+                <JsonViewerNode value="entry[1]" isRoot="false" />
+            </li>
+        </t>
+    </t>
+
+</templates>
