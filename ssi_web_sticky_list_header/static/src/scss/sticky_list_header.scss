@@ -1,0 +1,58 @@
+// Copyright 2026 OpenSynergy Indonesia
+// Copyright 2026 PT. Simetri Sinergi Indonesia
+// License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+
+// =============================================================================
+// Web Sticky List Header
+//
+// Makes the <thead> of list views and x2many fields sticky when scrolling.
+//
+// Odoo 19 DOM structure (main list view AND x2many fields, unified):
+//   .o_content (overflow:auto; height:100% — outer scroll container)
+//     └─ .o_view_controller.o_list_view / .o_field_x2many
+//           └─ .o_list_renderer.o_renderer.table-responsive
+//                 (Odoo 19 core: height:100% at >=md, and `table-responsive`
+//                  is merged into this same element instead of a separate
+//                  wrapper div like in Odoo 14 — this makes .o_list_renderer
+//                  itself the scroll container that the sticky header sticks
+//                  relative to.)
+//                 └─ table.o_list_table
+//                       └─ thead   ← sticky target
+//
+// Odoo 19 core (addons/web/static/src/views/list/list_renderer.scss) already
+// applies `position: sticky; top: 0; z-index: var(--sticky-header-zindex);`
+// to `.o_list_renderer .o_list_table thead` (screen media, >=md breakpoint),
+// plus a background-color on the header `th` cells via the
+// `--ListRenderer-thead-bg-color` CSS variable. This module intentionally
+// does NOT disable or replace that native behaviour — the rules below only
+// REINFORCE it explicitly, so the sticky/background contract keeps holding
+// even if a theme module or a future core change weakens the native rule.
+// Since `.o_list_renderer` is shared by both standalone list views and
+// x2many (One2many / Many2many) fields in a form, a single selector block
+// now covers both cases — unlike Odoo 14, which needed a second rule scoped
+// to `.o_field_one2many` / `.o_field_many2many`.
+// =============================================================================
+
+// Background colour — reuse Odoo's own header background custom property
+// (set by core on .o_list_renderer) when available, falling back to the
+// view background Sass variable, then to plain white.
+$sticky-bg-fallback: if(
+    variable-exists(o-view-background-color),
+    $o-view-background-color,
+    #fff
+);
+$sticky-bg: var(--ListRenderer-thead-bg-color, #{$sticky-bg-fallback});
+
+.o_list_renderer {
+    .o_list_table > thead {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+
+        // Background colour must be set on the actual th cells so content
+        // scrolling behind the header is covered.
+        > tr > th {
+            background-color: $sticky-bg;
+        }
+    }
+}
