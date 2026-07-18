@@ -1,0 +1,26 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ssi_web_widget_whatsapp
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: ssi_web_widget_whatsapp
+#. odoo-javascript
+#: code:addons/ssi_web_widget_whatsapp/static/src/fields/whatsapp_message/whatsapp_message_field.esm.js:0
+msgid "Send WhatsApp message"
+msgstr ""
+
+#. module: ssi_web_widget_whatsapp
+#. odoo-javascript
+#: code:addons/ssi_web_widget_whatsapp/static/src/fields/whatsapp_message/whatsapp_message_field.esm.js:0
+msgid "WhatsApp Message"
+msgstr ""
