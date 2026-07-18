@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+    <t t-name="ssi_web_widget_csv_table.CsvTableField">
+        <div class="o_field_csv_table">
+            <t t-if="props.readonly">
+                <t t-if="hasRows">
+                    <t t-call="ssi_web_widget_csv_table.CsvTableField.Table">
+                        <t t-set="editable" t-value="false" />
+                    </t>
+                </t>
+            </t>
+            <t t-else="">
+                <div class="o_csv_table_toggle_bar d-flex gap-1 mb-2">
+                    <button
+                        type="button"
+                        t-attf-class="btn btn-sm o_csv_table_toggle_btn {{state.mode === 'text' ? 'btn-primary' : 'btn-outline-secondary'}}"
+                        t-on-click="() => this.setMode('text')"
+                    >
+                        Text
+                    </button>
+                    <button
+                        type="button"
+                        t-attf-class="btn btn-sm o_csv_table_toggle_btn {{state.mode === 'table' ? 'btn-primary' : 'btn-outline-secondary'}}"
+                        t-on-click="() => this.setMode('table')"
+                    >
+                        Table
+                    </button>
+                </div>
+                <t t-if="state.mode === 'text'">
+                    <textarea
+                        t-ref="textarea"
+                        class="o_csv_table_textarea o_input"
+                        rows="12"
+                        spellcheck="false"
+                        t-on-input="onTextareaInput"
+                    />
+                </t>
+                <t t-else="">
+                    <t t-if="hasRows">
+                        <t t-call="ssi_web_widget_csv_table.CsvTableField.Table">
+                            <t t-set="editable" t-value="true" />
+                        </t>
+                    </t>
+                    <t t-else="">
+                        <p class="o_csv_table_empty_msg text-muted">
+                            No data. Switch to Text mode to enter CSV data.
+                        </p>
+                    </t>
+                </t>
+            </t>
+        </div>
+    </t>
+
+    <t t-name="ssi_web_widget_csv_table.CsvTableField.Table">
+        <div class="o_csv_table_wrapper">
+            <table class="o_csv_table table table-sm table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th class="o_csv_table_row_number">#</th>
+                        <t t-foreach="columnIndexes" t-as="col" t-key="col">
+                            <th t-esc="headerCell(col)" />
+                        </t>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="pageRows" t-as="row" t-key="row_index">
+                        <tr>
+                            <td
+                                class="o_csv_table_row_number"
+                                t-esc="rowNumber(row_index)"
+                            />
+                            <t t-foreach="columnIndexes" t-as="col" t-key="col">
+                                <t t-if="editable">
+                                    <td class="o_csv_table_edit_cell">
+                                        <t t-if="isBoolean(cellValue(row, col))">
+                                            <input
+                                                type="checkbox"
+                                                class="o_csv_table_cell_checkbox"
+                                                t-att-checked="isChecked(cellValue(row, col))"
+                                                t-on-change="(ev) => this.onCellCheckboxChange(row_index, col, ev)"
+                                            />
+                                        </t>
+                                        <t t-else="">
+                                            <input
+                                                type="text"
+                                                t-attf-class="o_csv_table_cell_input form-control form-control-sm border-0 rounded-0 {{isNumeric(cellValue(row, col)) ? 'text-end' : ''}}"
+                                                t-att-value="cellValue(row, col)"
+                                                t-on-change="(ev) => this.onCellInputChange(row_index, col, ev)"
+                                            />
+                                        </t>
+                                    </td>
+                                </t>
+                                <t t-else="">
+                                    <td
+                                        t-attf-class="{{isNumeric(cellValue(row, col)) ? 'o_csv_table_cell_numeric' : ''}}"
+                                        t-esc="cellValue(row, col).trim()"
+                                    />
+                                </t>
+                            </t>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+        </div>
+        <div
+            class="o_csv_table_footer d-flex align-items-center justify-content-between flex-wrap"
+        >
+            <div class="o_csv_table_info text-muted small" t-esc="pageInfo" />
+            <t t-if="pageCount > 1">
+                <div class="o_csv_table_pager d-flex align-items-center gap-1">
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary o_csv_table_page_btn"
+                        t-att-disabled="currentPage === 0"
+                        t-on-click="() => this.goToPage(0)"
+                    >
+                        «
+                    </button>
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary o_csv_table_page_btn"
+                        t-att-disabled="currentPage === 0"
+                        t-on-click="() => this.goToPage(currentPage - 1)"
+                    >
+                        ‹
+                    </button>
+                    <span
+                        class="o_csv_table_page_info"
+                        t-esc="(currentPage + 1) + ' / ' + pageCount"
+                    />
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary o_csv_table_page_btn"
+                        t-att-disabled="currentPage >= pageCount - 1"
+                        t-on-click="() => this.goToPage(currentPage + 1)"
+                    >
+                        ›
+                    </button>
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary o_csv_table_page_btn"
+                        t-att-disabled="currentPage >= pageCount - 1"
+                        t-on-click="() => this.goToPage(pageCount - 1)"
+                    >
+                        »
+                    </button>
+                </div>
+            </t>
+        </div>
+    </t>
+
+</templates>
