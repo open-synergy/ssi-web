@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+    <t t-name="ssi_web_widget_json.JsonViewerField">
+        <div class="o_field_json_viewer">
+            <t t-if="props.readonly">
+                <t t-if="!value">
+                    <span class="o_json_empty" t-esc="emptyLabel" />
+                </t>
+                <t t-elif="parsedValue.ok">
+                    <div class="o_json_viewer_container">
+                        <JsonViewerNode value="parsedValue.data" isRoot="true" />
+                    </div>
+                </t>
+                <t t-else="">
+                    <pre class="o_json_raw_text" t-esc="value" />
+                </t>
+            </t>
+            <t t-else="">
+                <div class="o_json_editor_wrapper">
+                    <textarea
+                        t-ref="textarea"
+                        class="o_json_editor o_input"
+                        rows="10"
+                        spellcheck="false"
+                        t-on-input="onInput"
+                        t-on-keydown="onKeydown"
+                    />
+                    <div
+                        t-if="state.statusText"
+                        t-attf-class="o_json_status {{state.statusClass}}"
+                        t-esc="state.statusText"
+                    />
+                </div>
+            </t>
+        </div>
+    </t>
+
+</templates>
