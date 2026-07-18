@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Copyright 2026 OpenSynergy Indonesia
+     Copyright 2026 PT. Simetri Sinergi Indonesia
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<templates xml:space="preserve">
+
+    <t
+        t-name="ssi_web_edit_attachment_name.AttachmentList"
+        t-inherit="mail.AttachmentList"
+        t-inherit-mode="extension"
+    >
+        <!-- Desktop: add a Rename button next to Download/Remove in the
+             hover overlay actions. -->
+        <xpath expr="//div[hasclass('o-mail-AttachmentButtons')]" position="inside">
+            <button
+                t-if="canRename(attachment)"
+                class="btn bg-500 w-100 h-100 o-p-1_5 d-flex justify-content-center align-items-center shadow-sm"
+                t-on-click.stop="() => this.onClickRename(attachment)"
+                title="Rename"
+            >
+                <i class="fa fa-pencil o-text-white" role="img" aria-label="Rename" />
+            </button>
+        </xpath>
+    </t>
+
+</templates>

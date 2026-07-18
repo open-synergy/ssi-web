@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Copyright 2026 OpenSynergy Indonesia
+     Copyright 2026 PT. Simetri Sinergi Indonesia
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<templates xml:space="preserve">
+
+    <t t-name="ssi_web_edit_attachment_name.AttachmentRenameDialog">
+        <Dialog title="title" size="'md'">
+            <div class="o_attachment_rename_dialog">
+                <label
+                    for="ssi_attachment_rename_input"
+                    class="col-form-label"
+                >New name</label>
+                <input
+                    t-ref="autofocus"
+                    id="ssi_attachment_rename_input"
+                    type="text"
+                    class="o_input form-control mt-1"
+                    t-att-value="props.currentName"
+                    t-on-keydown="onKeydown"
+                />
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-on-click="onClickSave">Save</button>
+                <button
+                    class="btn btn-secondary"
+                    t-on-click="onClickCancel"
+                >Cancel</button>
+            </t>
+        </Dialog>
+    </t>
+
+</templates>
