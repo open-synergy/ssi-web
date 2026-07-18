@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+    <t t-name="ssi_web_widget_whatsapp.WhatsappMessageField">
+        <a
+            t-if="props.readonly and value"
+            t-att-href="whatsappUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="o_whatsapp_btn"
+            t-att-title="buttonLabel"
+            t-att-aria-label="buttonLabel"
+        >
+            <i class="fa fa-whatsapp o_whatsapp_icon" aria-hidden="true" />
+        </a>
+    </t>
+
+</templates>
