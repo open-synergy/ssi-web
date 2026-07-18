@@ -1,0 +1,39 @@
+// Copyright 2026 PT. Simetri Sinergi Indonesia
+// License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+
+// WhatsApp button (readonly mode only — nothing is rendered in edit mode).
+.o_whatsapp_btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #25d366;
+    color: #ffffff !important;
+    text-decoration: none !important;
+    border: none;
+    cursor: pointer;
+    transition:
+        background-color 0.2s ease,
+        transform 0.1s ease;
+    line-height: 1;
+
+    &:hover,
+    &:focus {
+        background-color: #1da84e;
+        color: #ffffff !important;
+        text-decoration: none !important;
+        transform: scale(1.1);
+        outline: none;
+    }
+
+    &:active {
+        transform: scale(0.95);
+    }
+}
+
+.o_whatsapp_icon {
+    font-size: 18px;
+    line-height: 1;
+}
