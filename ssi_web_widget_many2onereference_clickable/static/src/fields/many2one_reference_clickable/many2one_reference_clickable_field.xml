@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+    <t
+        t-name="ssi_web_widget_many2onereference_clickable.Many2oneReferenceClickableField"
+    >
+        <ReferenceField t-if="isReferenceType" t-props="props" />
+        <Many2OneReferenceField t-else="" t-props="props" />
+    </t>
+
+</templates>
