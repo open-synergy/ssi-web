@@ -29,6 +29,7 @@ addon | version | maintainers | summary
 [ssi_web_widget_csv_table](ssi_web_widget_csv_table/) | 19.0.1.0.0 |  | Web Widget CSV Table
 [ssi_web_widget_json](ssi_web_widget_json/) | 19.0.1.0.0 |  | Web Widget JSON Viewer
 [ssi_web_widget_many2onereference_clickable](ssi_web_widget_many2onereference_clickable/) | 19.0.1.0.0 |  | Widget Many2one Reference Clickable
+[ssi_web_widget_rjsf](ssi_web_widget_rjsf/) | 19.0.1.0.0 |  | Field widget to edit JSON fields using React JSON Schema Form (RJSF)
 [ssi_web_widget_whatsapp](ssi_web_widget_whatsapp/) | 19.0.1.0.0 |  | Widget WhatsApp Message Button
 [ssi_web_widget_x2m_excel_download](ssi_web_widget_x2m_excel_download/) | 19.0.1.0.0 |  | Adds an Excel download button covering all records of a one2many/many2many list inside a form
 
