@@ -1,0 +1,159 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ssi_web_widget_ace_git
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: ssi_web_widget_ace_git
+#. odoo-javascript
+#: code:addons/ssi_web_widget_ace_git/static/src/components/ace_git_field/fetch_github_dialog.xml:0
+msgid "(optional for public repos)"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. odoo-javascript
+#: code:addons/ssi_web_widget_ace_git/static/src/components/ace_git_field/fetch_github_dialog.xml:0
+msgid ""
+")\n"
+"                        or raw URL\n"
+"                        ("
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. odoo-javascript
+#: code:addons/ssi_web_widget_ace_git/static/src/components/ace_git_field/fetch_github_dialog.esm.js:0
+msgid "An unknown error occurred."
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. odoo-javascript
+#: code:addons/ssi_web_widget_ace_git/static/src/components/ace_git_field/fetch_github_dialog.xml:0
+msgid "Cancel"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. odoo-javascript
+#: code:addons/ssi_web_widget_ace_git/static/src/components/ace_git_field/fetch_github_dialog.esm.js:0
+msgid "Error"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. odoo-javascript
+#: code:addons/ssi_web_widget_ace_git/static/src/components/ace_git_field/fetch_github_dialog.esm.js:0
+msgid "Failed to Fetch File"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. odoo-javascript
+#: code:addons/ssi_web_widget_ace_git/static/src/components/ace_git_field/fetch_github_dialog.esm.js:0
+msgid ""
+"Failed to reach the backend server. Please check the server logs and try "
+"again."
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. odoo-javascript
+#: code:addons/ssi_web_widget_ace_git/static/src/components/ace_git_field/fetch_github_dialog.xml:0
+msgid "Fetch & Apply"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. odoo-javascript
+#: code:addons/ssi_web_widget_ace_git/static/src/components/ace_git_field/fetch_github_dialog.esm.js:0
+msgid "Fetch File from GitHub"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. odoo-javascript
+#: code:addons/ssi_web_widget_ace_git/static/src/components/ace_git_field/ace_git_field_patch.xml:0
+msgid "Fetch file content from GitHub and insert into the editor"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. odoo-javascript
+#: code:addons/ssi_web_widget_ace_git/static/src/components/ace_git_field/ace_git_field_patch.xml:0
+msgid "Fetch from GitHub"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. odoo-javascript
+#: code:addons/ssi_web_widget_ace_git/static/src/components/ace_git_field/ace_git_field_patch.esm.js:0
+msgid "File content successfully fetched from GitHub."
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. odoo-javascript
+#: code:addons/ssi_web_widget_ace_git/static/src/components/ace_git_field/fetch_github_dialog.xml:0
+msgid "GitHub File URL"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. odoo-javascript
+#: code:addons/ssi_web_widget_ace_git/static/src/components/ace_git_field/fetch_github_dialog.xml:0
+msgid "GitHub Personal Access Token"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. odoo-javascript
+#: code:addons/ssi_web_widget_ace_git/static/src/components/ace_git_field/fetch_github_dialog.esm.js:0
+msgid "Please enter a GitHub file URL first."
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. odoo-javascript
+#: code:addons/ssi_web_widget_ace_git/static/src/components/ace_git_field/fetch_github_dialog.xml:0
+msgid "Required for"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. odoo-javascript
+#: code:addons/ssi_web_widget_ace_git/static/src/components/ace_git_field/fetch_github_dialog.xml:0
+msgid ""
+"Supports GitHub web URL\n"
+"                        ("
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. odoo-javascript
+#: code:addons/ssi_web_widget_ace_git/static/src/components/ace_git_field/fetch_github_dialog.xml:0
+msgid "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. odoo-javascript
+#: code:addons/ssi_web_widget_ace_git/static/src/components/ace_git_field/fetch_github_dialog.xml:0
+msgid "github.com/.../blob/..."
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. odoo-javascript
+#: code:addons/ssi_web_widget_ace_git/static/src/components/ace_git_field/fetch_github_dialog.xml:0
+msgid "https://github.com/user/repo/blob/main/path/to/file.py"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. odoo-javascript
+#: code:addons/ssi_web_widget_ace_git/static/src/components/ace_git_field/fetch_github_dialog.xml:0
+msgid "private"
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. odoo-javascript
+#: code:addons/ssi_web_widget_ace_git/static/src/components/ace_git_field/fetch_github_dialog.xml:0
+msgid "raw.githubusercontent.com/..."
+msgstr ""
+
+#. module: ssi_web_widget_ace_git
+#. odoo-javascript
+#: code:addons/ssi_web_widget_ace_git/static/src/components/ace_git_field/fetch_github_dialog.xml:0
+msgid "repositories. Token is not stored on the server."
+msgstr ""
