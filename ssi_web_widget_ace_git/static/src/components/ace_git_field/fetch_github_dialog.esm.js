@@ -18,8 +18,11 @@ import {useService} from "@web/core/utils/hooks";
  * `useService("dialog")`) and the RPC service
  * (`@web/core/network/rpc`) — the 14.0 counterparts (`web.Dialog`,
  * `ajax.jsonRpc`) do not exist in Odoo 19. The controller route itself
- * (`type="json"`, `auth="user"`) is unchanged from the 14.0 port, and
- * `rpc()` speaks the same JSON-RPC envelope that route expects.
+ * (`auth="user"`, GitHub host allowlist) is unchanged from the 14.0 port
+ * apart from `type="json"` → `type="jsonrpc"` (Odoo 19 renamed the route
+ * type; `json` is now a deprecated alias with identical behaviour — see
+ * `odoo/upgrade_code/18.1-02-route-jsonrpc.py`), and `rpc()` speaks the
+ * same JSON-RPC envelope that route expects.
  */
 export class FetchGitHubDialog extends Component {
     static template = "ssi_web_widget_ace_git.FetchGitHubDialog";

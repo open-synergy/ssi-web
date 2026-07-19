@@ -33,7 +33,7 @@ class GitHubProxyController(http.Controller):
 
     @http.route(
         "/ssi_web_widget_ace_git/fetch_github",
-        type="json",
+        type="jsonrpc",
         auth="user",
         methods=["POST"],
         csrf=False,
