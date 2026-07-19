@@ -24,6 +24,7 @@ addon | version | maintainers | summary
 [ssi_web_chatwoot](ssi_web_chatwoot/) | 19.0.1.0.0 |  | SSI Web Chatwoot
 [ssi_web_clear_all_filter](ssi_web_clear_all_filter/) | 19.0.1.0.0 |  | Web Clear All Filter
 [ssi_web_edit_attachment_name](ssi_web_edit_attachment_name/) | 19.0.1.0.0 |  | Web Edit Attachment Name
+[ssi_web_gantt](ssi_web_gantt/) | 19.0.1.0.0 |  | Custom ssi_gantt view type rendering one bar per record over a date range
 [ssi_web_login](ssi_web_login/) | 19.0.1.0.0 |  | SSI Web Login
 [ssi_web_server_action_confirmation](ssi_web_server_action_confirmation/) | 19.0.1.0.0 |  | Asks for confirmation before running any server action
 [ssi_web_sticky_list_header](ssi_web_sticky_list_header/) | 19.0.1.0.0 |  | Web Sticky List Header
