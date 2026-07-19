@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+    <t
+        t-name="ssi_web_widget_x2m_excel_download.X2ManyField"
+        t-inherit="web.X2ManyField"
+        t-inherit-mode="extension"
+    >
+        <xpath expr="//div[hasclass('o_x2m_control_panel')]" position="inside">
+            <div t-if="excelDownloadVisible" class="o_x2m_excel_download_bar">
+                <span
+                    t-if="excelDownloadStatus"
+                    class="o_x2m_excel_download_status"
+                    t-esc="excelDownloadStatus"
+                />
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-success o_x2m_excel_download_btn"
+                    t-att-disabled="excelDownloadBusy"
+                    t-on-click="() => this.onExcelDownloadClick()"
+                >
+                    <i class="fa fa-file-excel-o" aria-hidden="true" /> Download Excel
+                </button>
+            </div>
+        </xpath>
+    </t>
+
+</templates>
