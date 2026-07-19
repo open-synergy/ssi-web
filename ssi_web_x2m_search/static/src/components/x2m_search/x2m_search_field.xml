@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+    <t
+        t-name="ssi_web_x2m_search.X2mSearchField"
+        t-inherit="web.X2ManyField"
+        t-inherit-mode="primary"
+    >
+        <xpath expr="//div[@t-att-class='className']" position="attributes">
+            <attribute name="t-ref">x2mSearchRoot</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('o_x2m_control_panel')]" position="inside">
+            <div t-if="x2mSearchBoxVisible" class="o_x2m_search_box ms-2" role="search">
+                <input
+                    type="text"
+                    class="o_x2m_search_input form-control form-control-sm"
+                    t-model="x2mSearchState.value"
+                    t-att-placeholder="x2mSearchPlaceholder"
+                />
+            </div>
+        </xpath>
+    </t>
+
+</templates>
