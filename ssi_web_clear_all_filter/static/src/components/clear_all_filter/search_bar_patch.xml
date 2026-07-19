@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Copyright 2026 OpenSynergy Indonesia
+     Copyright 2026 PT. Simetri Sinergi Indonesia
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<templates xml:space="preserve">
+
+    <t
+        t-name="ssi_web_clear_all_filter.SearchBar"
+        t-inherit="web.SearchBar"
+        t-inherit-mode="extension"
+    >
+        <xpath expr="//div[hasclass('o_searchview_input_container')]" position="inside">
+            <button
+                t-if="hasActiveFacets"
+                class="o_clear_all_filter btn btn-link py-0 px-2 text-danger d-print-none fa fa-times-circle-o"
+                aria-label="Clear All Filter"
+                title="Clear All Filter"
+                t-on-click="() => this.onClickClearAllFilter()"
+            />
+        </xpath>
+    </t>
+
+</templates>
