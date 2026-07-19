@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+    <t
+        t-name="ssi_web_widget_ace_git.AceField"
+        t-inherit="web.AceField"
+        t-inherit-mode="extension"
+    >
+        <xpath expr="//div[hasclass('o_ace_view_editor')]" position="inside">
+            <button
+                t-if="!props.readonly"
+                type="button"
+                class="btn btn-sm btn-secondary o_ace_git_fetch_btn mt-1"
+                title="Fetch file content from GitHub and insert into the editor"
+                t-on-click="() => this.onClickFetchFromGithub()"
+            >
+                <i class="fa fa-github" aria-hidden="true" /> Fetch from GitHub
+            </button>
+        </xpath>
+    </t>
+
+</templates>
