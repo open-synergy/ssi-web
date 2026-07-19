@@ -1,0 +1,180 @@
+options:
+  auto_refresh: true
+
+scenarios:
+  - name: "ssi_web_gantt - Module is installed"
+    steps:
+      - step: "Search for installed module"
+        action: "search"
+        model: "ir.module.module"
+        domain:
+          - ["name", "=", "ssi_web_gantt"]
+          - ["state", "=", "installed"]
+        save_as: "module"
+        expect_count: 1
+
+  - name: "ssi_web_gantt - Arch with date_start and date_stop is accepted"
+    steps:
+      - step: "Create an ssi_gantt view using date_stop"
+        action: "create"
+        model: "ir.ui.view"
+        save_as: "view"
+        values:
+          name: "Partner SSI Gantt date_stop"
+          model: "res.partner"
+          type: "ssi_gantt"
+          arch: |
+            <ssi_gantt date_start="create_date" date_stop="write_date" />
+      - step: "Assert the view is stored as an ssi_gantt view"
+        action: "assert"
+        target: "view"
+        asserts:
+          id:
+            type: "value"
+            operator: "is_truthy"
+          type:
+            type: "value"
+            expected: "ssi_gantt"
+          model:
+            type: "value"
+            expected: "res.partner"
+
+  - name: "ssi_web_gantt - Arch with date_start and date_delay is accepted"
+    steps:
+      - step: "Create an ssi_gantt view using date_delay"
+        action: "create"
+        model: "ir.ui.view"
+        save_as: "view"
+        values:
+          name: "Partner SSI Gantt date_delay"
+          model: "res.partner"
+          type: "ssi_gantt"
+          arch: |
+            <ssi_gantt date_start="create_date" date_delay="partner_latitude" />
+      - step: "Assert the view is stored as an ssi_gantt view"
+        action: "assert"
+        target: "view"
+        asserts:
+          type:
+            type: "value"
+            expected: "ssi_gantt"
+
+  - name: "ssi_web_gantt - Arch with default_group_by is accepted"
+    steps:
+      - step: "Create an ssi_gantt view grouped by parent_id"
+        action: "create"
+        model: "ir.ui.view"
+        save_as: "view"
+        values:
+          name: "Partner SSI Gantt grouped"
+          model: "res.partner"
+          type: "ssi_gantt"
+          arch: |
+            <ssi_gantt
+                date_start="create_date"
+                date_stop="write_date"
+                default_group_by="parent_id"
+            />
+      - step: "Assert the arch was accepted"
+        action: "assert"
+        target: "view"
+        asserts:
+          arch_db:
+            type: "value"
+            operator: "contains"
+            expected: "default_group_by"
+
+  - name: "ssi_web_gantt - date_start is mandatory"
+    steps:
+      - step: "Create a view without date_start"
+        action: "create"
+        model: "ir.ui.view"
+        expect_error:
+          type: "ValidationError"
+          message_contains: "date_start"
+        values:
+          name: "Partner SSI Gantt Without Date Start"
+          model: "res.partner"
+          type: "ssi_gantt"
+          arch: |
+            <ssi_gantt date_stop="write_date" />
+
+  - name: "ssi_web_gantt - date_stop or date_delay is mandatory"
+    steps:
+      - step: "Create a view with neither date_stop nor date_delay"
+        action: "create"
+        model: "ir.ui.view"
+        expect_error:
+          type: "ValidationError"
+          message_contains: "date_delay"
+        values:
+          name: "Partner SSI Gantt Without End"
+          model: "res.partner"
+          type: "ssi_gantt"
+          arch: |
+            <ssi_gantt date_start="create_date" />
+
+  - name: "ssi_web_gantt - Unknown date_start field is rejected"
+    steps:
+      - step: "Create a view whose date_start does not exist on the model"
+        action: "create"
+        model: "ir.ui.view"
+        expect_error:
+          type: "ValidationError"
+          message_contains: "does not exist"
+        values:
+          name: "Partner SSI Gantt Unknown Field"
+          model: "res.partner"
+          type: "ssi_gantt"
+          arch: |
+            <ssi_gantt
+                date_start="no_such_field_at_all"
+                date_stop="write_date"
+            />
+
+  - name: "ssi_web_gantt - Action view_mode accepts ssi_gantt"
+    steps:
+      - step: "Create an ssi_gantt view on res.partner"
+        action: "create"
+        model: "ir.ui.view"
+        save_as: "view"
+        values:
+          name: "Partner SSI Gantt For Action"
+          model: "res.partner"
+          type: "ssi_gantt"
+          arch: |
+            <ssi_gantt date_start="create_date" date_stop="write_date" />
+      - step: "Create an action whose view_mode contains ssi_gantt"
+        action: "create"
+        model: "ir.actions.act_window"
+        save_as: "action"
+        values:
+          name: "Partner SSI Gantt Action"
+          res_model: "res.partner"
+          view_mode: "list,form,ssi_gantt"
+      - step: "Assert the action view_mode was stored"
+        action: "assert"
+        target: "action"
+        asserts:
+          view_mode:
+            type: "value"
+            expected: "list,form,ssi_gantt"
+      - step: "Pin the ssi_gantt view on the action"
+        action: "create"
+        model: "ir.actions.act_window.view"
+        save_as: "action_view"
+        values:
+          act_window_id: "REC: action.id"
+          view_id: "REC: view.id"
+          view_mode: "ssi_gantt"
+          sequence: 30
+      - step: "Assert the pinned view is an ssi_gantt view"
+        action: "assert"
+        target: "action_view"
+        asserts:
+          view_mode:
+            type: "value"
+            expected: "ssi_gantt"
+          view_id.type:
+            type: "value"
+            expected: "ssi_gantt"

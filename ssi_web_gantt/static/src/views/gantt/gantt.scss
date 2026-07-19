@@ -1,0 +1,38 @@
+.o_ssi_gantt_renderer {
+    overflow: auto;
+    width: 100%;
+
+    .o_ssi_gantt_row {
+        border-bottom: 1px solid $border-color;
+        min-height: 32px;
+    }
+
+    .o_ssi_gantt_row_label {
+        flex: 0 0 200px;
+        width: 200px;
+        padding: 4px 8px;
+        font-weight: $font-weight-bold;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .o_ssi_gantt_row_track {
+        min-height: 32px;
+    }
+
+    .o_ssi_gantt_bar {
+        top: 4px;
+        height: 24px;
+        min-width: 2px;
+        overflow: hidden;
+        padding: 0 4px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        color: $o-white;
+        background-color: $o-brand-primary;
+        border-radius: 3px;
+        line-height: 24px;
+        font-size: 0.75rem;
+    }
+}
