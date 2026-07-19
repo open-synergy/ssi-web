@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="ssi_web_chatwoot.ChatwootSystray">
+        <li
+            t-if="state.settings and state.settings.enabled"
+            class="o_mail_systray_item o_chatwoot_systray_item"
+        >
+            <a
+                href="#"
+                role="button"
+                class="o_chatwoot_toggler o-no-caret"
+                title="Support Chat"
+                t-on-click="onToggleClick"
+            >
+                <i class="fa fa-headphones" role="img" aria-label="Support Chat" />
+                <span
+                    t-if="state.unreadCount"
+                    class="o_notification_counter badge rounded-pill"
+                    t-out="state.unreadCount"
+                />
+            </a>
+        </li>
+    </t>
+</templates>

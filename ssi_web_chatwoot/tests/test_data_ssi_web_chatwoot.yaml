@@ -1,0 +1,136 @@
+scenarios:
+  - name: "ssi_web_chatwoot - Module is installed"
+    steps:
+      - step: "Search for installed module"
+        action: "search"
+        model: "ir.module.module"
+        domain:
+          - ["name", "=", "ssi_web_chatwoot"]
+          - ["state", "=", "installed"]
+        save_as: "module"
+        expect_count: 1
+
+  - name: "Create Chatwoot Configuration"
+    steps:
+      - step: "Create configuration"
+        action: "create"
+        model: "chatwoot_configuration"
+        save_as: "configuration"
+        values:
+          name: "Test Configuration"
+          code: "/"
+          base_url: "https://chat.example.com"
+          website_token: "test-website-token"
+          active: false
+          company_id: "REC: company.id"
+      - step: "Assert created"
+        action: "assert"
+        target: "configuration"
+        asserts:
+          id:
+            type: "value"
+            operator: "is_truthy"
+          name:
+            type: "value"
+            expected: "Test Configuration"
+          base_url:
+            type: "value"
+            expected: "https://chat.example.com"
+
+  - name: "Edit Chatwoot Configuration Launcher Title"
+    steps:
+      - step: "Create configuration"
+        action: "create"
+        model: "chatwoot_configuration"
+        save_as: "configuration"
+        values:
+          name: "Test Configuration"
+          code: "/"
+          base_url: "https://chat.example.com"
+          website_token: "test-website-token"
+          active: false
+          company_id: "REC: company.id"
+      - step: "Write launcher title"
+        action: "write"
+        target: "configuration"
+        values:
+          launcher_title: "Talk to Us"
+      - step: "Assert launcher title updated"
+        action: "assert"
+        target: "configuration"
+        asserts:
+          launcher_title:
+            type: "value"
+            expected: "Talk to Us"
+
+  - name: "Delete Chatwoot Configuration"
+    steps:
+      - step: "Create configuration"
+        action: "create"
+        model: "chatwoot_configuration"
+        save_as: "configuration"
+        values:
+          name: "Deletable Configuration"
+          code: "/"
+          base_url: "https://chat.example.com"
+          website_token: "test-website-token"
+          active: false
+          company_id: "REC: company.id"
+      - step: "Delete configuration"
+        action: "call"
+        target: "configuration"
+        method: "unlink"
+      - step: "Verify deleted"
+        action: "search"
+        model: "chatwoot_configuration"
+        domain:
+          - ["name", "=", "Deletable Configuration"]
+        save_as: "result"
+        expect_count: 0
+
+  - name: "Single active configuration per company is enforced"
+    steps:
+      - step: "Create first active configuration"
+        action: "create"
+        model: "chatwoot_configuration"
+        save_as: "first_configuration"
+        values:
+          name: "First Active Configuration"
+          code: "/"
+          base_url: "https://chat.example.com"
+          website_token: "first-website-token"
+          active: true
+          company_id: "REC: company.id"
+      - step: "Create second active configuration on the same company"
+        action: "create"
+        model: "chatwoot_configuration"
+        expect_error:
+          type: "ValidationError"
+        values:
+          name: "Second Active Configuration"
+          code: "/"
+          base_url: "https://chat.example.com"
+          website_token: "second-website-token"
+          active: true
+          company_id: "REC: company.id"
+      - step: "Create second, inactive configuration on the same company"
+        action: "create"
+        model: "chatwoot_configuration"
+        save_as: "second_configuration"
+        values:
+          name: "Second Inactive Configuration"
+          code: "/"
+          base_url: "https://chat.example.com"
+          website_token: "second-website-token"
+          active: false
+          company_id: "REC: company.id"
+      - step: "Assert second configuration saved"
+        action: "assert"
+        target: "second_configuration"
+        asserts:
+          id:
+            type: "value"
+            operator: "is_truthy"
+          active:
+            type: "value"
+            expected: false
