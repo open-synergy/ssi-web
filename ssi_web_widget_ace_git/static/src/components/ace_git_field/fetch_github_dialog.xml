@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+    <t t-name="ssi_web_widget_ace_git.FetchGitHubDialog">
+        <Dialog title="title" size="'md'">
+            <div class="o_ace_git_dialog_form">
+                <div class="mb-3">
+                    <label class="form-label fw-bold" for="ace_git_url">
+                        GitHub File URL
+                    </label>
+                    <input
+                        type="text"
+                        id="ace_git_url"
+                        class="form-control"
+                        placeholder="https://github.com/user/repo/blob/main/path/to/file.py"
+                        autocomplete="off"
+                        spellcheck="false"
+                        t-model="state.githubUrl"
+                    />
+                    <small class="form-text text-muted">
+                        Supports GitHub web URL
+                        (<code>github.com/.../blob/...</code>)
+                        or raw URL
+                        (<code>raw.githubusercontent.com/...</code>).
+                    </small>
+                </div>
+                <div class="mb-1">
+                    <label class="form-label fw-bold" for="ace_git_token">
+                        GitHub Personal Access Token
+                        <span class="text-muted fw-normal fst-italic">
+                            (optional for public repos)
+                        </span>
+                    </label>
+                    <input
+                        type="password"
+                        id="ace_git_token"
+                        class="form-control"
+                        placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                        autocomplete="new-password"
+                        t-model="state.githubToken"
+                    />
+                    <small class="form-text text-muted">
+                        Required for
+                        <strong>private</strong>
+                        repositories. Token is not stored on the server.
+                    </small>
+                </div>
+            </div>
+            <t t-set-slot="footer">
+                <button
+                    type="button"
+                    class="btn btn-primary o_ace_git_submit_btn"
+                    t-att-disabled="state.fetching"
+                    t-on-click="() => this.onClickFetch()"
+                >
+                    <i
+                    t-if="state.fetching"
+                    class="fa fa-spinner fa-spin"
+                    aria-hidden="true"
+                />
+                    <i t-else="" class="fa fa-github" aria-hidden="true" />
+                    Fetch &amp; Apply
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    t-on-click="() => this.props.close()"
+                >
+                    Cancel
+                </button>
+            </t>
+        </Dialog>
+    </t>
+
+</templates>
