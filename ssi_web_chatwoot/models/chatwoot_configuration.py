@@ -164,4 +164,8 @@ Solution: Deactivate the other configuration before activating this one
         self.ensure_one()
         if not self.group_ids:
             return True
-        return bool(self.group_ids & user.groups_id)
+        # Odoo 19 renamed res.users.groups_id to res.users.group_ids
+        # (direct membership only); all_group_ids is the transitive
+        # closure including implied groups, matching the effective
+        # membership res.users.groups_id used to carry pre-19.
+        return bool(self.group_ids & user.all_group_ids)
