@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+    <t t-name="ssi_web_widget_rjsf.RjsfField">
+        <div class="o_field_rjsf" t-ref="root" />
+    </t>
+
+</templates>
