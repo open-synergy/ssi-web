@@ -1,0 +1,16 @@
+// Copyright 2026 OpenSynergy Indonesia
+// Copyright 2026 PT. Simetri Sinergi Indonesia
+// License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+
+.o_x2m_search_box {
+    display: inline-flex;
+    align-items: center;
+
+    .o_x2m_search_input {
+        max-width: 220px;
+    }
+}
+
+.o_data_row.o_x2m_search_hidden {
+    display: none !important;
+}
