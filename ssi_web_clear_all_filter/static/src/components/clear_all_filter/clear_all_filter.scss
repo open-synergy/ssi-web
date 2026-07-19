@@ -1,0 +1,14 @@
+// Copyright 2023 OpenSynergy Indonesia
+// Copyright 2023 PT. Simetri Sinergi Indonesia
+// Copyright 2026 OpenSynergy Indonesia
+// Copyright 2026 PT. Simetri Sinergi Indonesia
+// License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+
+// Ported from the 14.0 module's `.oe_cp_clear_filter` rule: push the button
+// to the far right of the search bar's flex row and give it a bit of
+// breathing room from the search input. Logical properties are used so the
+// spacing follows RTL layouts as well.
+.o_clear_all_filter {
+    margin-inline-start: auto;
+    padding-inline-start: 5px;
+}
