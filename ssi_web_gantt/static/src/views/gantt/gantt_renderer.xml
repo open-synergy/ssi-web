@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<templates>
+    <t t-name="ssi_web_gantt.GanttRenderer">
+        <div class="o_ssi_gantt_renderer o_renderer w-100">
+            <t t-foreach="rows" t-as="row" t-key="row.id">
+                <div class="o_ssi_gantt_row d-flex align-items-stretch">
+                    <div t-if="row.label !== false" class="o_ssi_gantt_row_label">
+                        <t t-esc="row.label" />
+                    </div>
+                    <div class="o_ssi_gantt_row_track position-relative flex-grow-1">
+                        <t t-foreach="row.records" t-as="record" t-key="record.id">
+                            <div
+                                class="o_ssi_gantt_bar position-absolute"
+                                t-att-style="getBarStyle(record)"
+                                t-att-title="record.data.display_name"
+                            >
+                                <span t-esc="record.data.display_name" />
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>
