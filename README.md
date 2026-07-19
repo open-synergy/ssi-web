@@ -21,6 +21,7 @@ Available addons
 ----------------
 addon | version | maintainers | summary
 --- | --- | --- | ---
+[ssi_web_clear_all_filter](ssi_web_clear_all_filter/) | 19.0.1.0.0 |  | Web Clear All Filter
 [ssi_web_edit_attachment_name](ssi_web_edit_attachment_name/) | 19.0.1.0.0 |  | Web Edit Attachment Name
 [ssi_web_login](ssi_web_login/) | 19.0.1.0.0 |  | SSI Web Login
 [ssi_web_sticky_list_header](ssi_web_sticky_list_header/) | 19.0.1.0.0 |  | Web Sticky List Header
