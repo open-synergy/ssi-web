@@ -3,11 +3,22 @@
      Copyright 2026 PT. Simetri Sinergi Indonesia
      License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl). -->
 <odoo>
-    <record id="chatwoot_configuration_group" model="res.groups">
+    <!-- Odoo 19 replaced res.groups.category_id with res.groups.privilege_id
+         (res.groups.privilege.category_id); see base/models/res_groups.py
+         and base/models/res_groups_privilege.py. -->
+    <record
+        id="res_groups_privilege_chatwoot_configuration"
+        model="res.groups.privilege"
+    >
         <field name="name">Chatwoot Configuration</field>
         <field name="category_id" ref="base.module_category_administration" />
+    </record>
+
+    <record id="chatwoot_configuration_group" model="res.groups">
+        <field name="name">Chatwoot Configuration</field>
+        <field name="privilege_id" ref="res_groups_privilege_chatwoot_configuration" />
         <field
-            name="users"
+            name="user_ids"
             eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"
         />
     </record>
