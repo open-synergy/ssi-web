@@ -1,6 +1,6 @@
 [project]
 name = "odoo-addons-open-synergy-ssi-web"
-version = "19.0.20260719.4"
+version = "19.0.20260719.5"
 dependencies = [
     "odoo-addon-ssi_web_chatwoot==19.0.*",
     "odoo-addon-ssi_web_clear_all_filter==19.0.*",
@@ -14,6 +14,7 @@ dependencies = [
     "odoo-addon-ssi_web_widget_rjsf==19.0.*",
     "odoo-addon-ssi_web_widget_whatsapp==19.0.*",
     "odoo-addon-ssi_web_widget_x2m_excel_download==19.0.*",
+    "odoo-addon-ssi_web_x2m_search==19.0.*",
 ]
 classifiers=[
     "Programming Language :: Python",
