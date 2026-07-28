@@ -1,0 +1,67 @@
+// Copyright 2026 OpenSynergy Indonesia
+// Copyright 2026 PT. Simetri Sinergi Indonesia
+// License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+
+.o_hierarchy_view {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: #fff;
+}
+
+.o_hierarchy_table {
+    margin-bottom: 0;
+
+    thead th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background-color: #f8f9fa;
+    }
+}
+
+.o_hierarchy_row {
+    cursor: pointer;
+
+    &:hover {
+        background-color: #f1f3f5;
+    }
+}
+
+.o_hierarchy_cell_main {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.o_hierarchy_indent {
+    flex: 0 0 auto;
+    display: inline-block;
+}
+
+.o_hierarchy_toggle,
+.o_hierarchy_toggle_placeholder {
+    flex: 0 0 auto;
+    display: inline-block;
+    width: 16px;
+    text-align: center;
+}
+
+.o_hierarchy_toggle {
+    cursor: pointer;
+    color: #6c757d;
+
+    &:hover {
+        color: #212529;
+    }
+}
+
+.o_hierarchy_label {
+    margin-left: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.o_hierarchy_buttons {
+    display: inline-block;
+}

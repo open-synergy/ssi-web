@@ -1,0 +1,274 @@
+options:
+  auto_refresh: true
+
+scenarios:
+  - name: "ssi_web_hierarchy_view - Module is installed"
+    steps:
+      - step: "Search for installed module"
+        action: "search"
+        model: "ir.module.module"
+        domain:
+          - ["name", "=", "ssi_web_hierarchy_view"]
+          - ["state", "=", "installed"]
+        save_as: "module"
+        expect_count: 1
+
+  - name: "ssi_web_hierarchy_view - Backend assets are registered"
+    steps:
+      - step: "Search for the backend assets template"
+        action: "search"
+        model: "ir.ui.view"
+        domain:
+          - ["key", "=", "ssi_web_hierarchy_view.assets_backend"]
+          - ["inherit_id.key", "=", "web.assets_backend"]
+        save_as: "assets"
+        expect_count: 1
+
+  - name: "ssi_web_hierarchy_view - Arch with only child_field is accepted"
+    steps:
+      - step: "Create a hierarchy view driven by child_field alone"
+        action: "create"
+        model: "ir.ui.view"
+        save_as: "view"
+        values:
+          name: "Partner Hierarchy Child Field Only"
+          model: "res.partner"
+          type: "hierarchy"
+          arch: |
+            <hierarchy child_field="child_ids" />
+      - step: "Assert the view is stored as a hierarchy view"
+        action: "assert"
+        target: "view"
+        asserts:
+          id:
+            type: "value"
+            operator: "is_truthy"
+          type:
+            type: "value"
+            expected: "hierarchy"
+          model:
+            type: "value"
+            expected: "res.partner"
+
+  - name: "ssi_web_hierarchy_view - Arch with only parent_field is accepted"
+    steps:
+      - step: "Create a hierarchy view driven by parent_field alone"
+        action: "create"
+        model: "ir.ui.view"
+        save_as: "view"
+        values:
+          name: "Partner Hierarchy Parent Field Only"
+          model: "res.partner"
+          type: "hierarchy"
+          arch: |
+            <hierarchy parent_field="parent_id" />
+      - step: "Assert the view is stored as a hierarchy view"
+        action: "assert"
+        target: "view"
+        asserts:
+          type:
+            type: "value"
+            expected: "hierarchy"
+
+  - name: "ssi_web_hierarchy_view - View type is inferred from the root tag"
+    steps:
+      - step: "Create a view without setting type explicitly"
+        action: "create"
+        model: "ir.ui.view"
+        save_as: "view"
+        values:
+          name: "Partner Hierarchy Inferred Type"
+          model: "res.partner"
+          arch: |
+            <hierarchy parent_field="parent_id" />
+      - step: "Assert type was inferred from the root tag"
+        action: "assert"
+        target: "view"
+        asserts:
+          type:
+            type: "value"
+            expected: "hierarchy"
+
+  - name: "ssi_web_hierarchy_view - Full arch passes validation"
+    steps:
+      - step: "Create a view using both attributes, columns and the extra ones"
+        action: "create"
+        model: "ir.ui.view"
+        save_as: "view"
+        values:
+          name: "Partner Hierarchy Full"
+          model: "res.partner"
+          type: "hierarchy"
+          arch: |
+            <hierarchy
+                parent_field="parent_id"
+                child_field="child_ids"
+                default_expand="1"
+                limit="500"
+            >
+                <field name="name" />
+                <field name="email" />
+            </hierarchy>
+      - step: "Assert the full arch was accepted and stored"
+        action: "assert"
+        target: "view"
+        asserts:
+          type:
+            type: "value"
+            expected: "hierarchy"
+          arch_db:
+            type: "value"
+            operator: "contains"
+            expected: "default_expand"
+
+  - name: "ssi_web_hierarchy_view - Neither child_field nor parent_field is rejected"
+    steps:
+      - step: "Create a hierarchy view without any hierarchy attribute"
+        action: "create"
+        model: "ir.ui.view"
+        expect_error:
+          type: "ValidationError"
+          message_contains: "child_field"
+        values:
+          name: "Partner Hierarchy Without Attribute"
+          model: "res.partner"
+          type: "hierarchy"
+          arch: |
+            <hierarchy />
+
+  - name: "ssi_web_hierarchy_view - parent_field pointing to a char field is rejected"
+    steps:
+      - step: "Create a hierarchy view whose parent_field is not a many2one"
+        action: "create"
+        model: "ir.ui.view"
+        expect_error:
+          type: "ValidationError"
+          message_contains: "parent_field"
+        values:
+          name: "Partner Hierarchy Parent Field Not M2O"
+          model: "res.partner"
+          type: "hierarchy"
+          arch: |
+            <hierarchy parent_field="name" />
+
+  - name: "ssi_web_hierarchy_view - parent_field to another model is rejected"
+    steps:
+      - step: "Create a hierarchy view whose parent_field targets res.company"
+        action: "create"
+        model: "ir.ui.view"
+        expect_error:
+          type: "ValidationError"
+          message_contains: "parent_field"
+        values:
+          name: "Partner Hierarchy Parent Field Foreign Model"
+          model: "res.partner"
+          type: "hierarchy"
+          arch: |
+            <hierarchy parent_field="company_id" />
+
+  - name: "ssi_web_hierarchy_view - child_field pointing to a many2one is rejected"
+    steps:
+      - step: "Create a hierarchy view whose child_field is not an x2many"
+        action: "create"
+        model: "ir.ui.view"
+        expect_error:
+          type: "ValidationError"
+          message_contains: "child_field"
+        values:
+          name: "Partner Hierarchy Child Field Not X2Many"
+          model: "res.partner"
+          type: "hierarchy"
+          arch: |
+            <hierarchy child_field="parent_id" />
+
+  - name: "ssi_web_hierarchy_view - child_field to another model is rejected"
+    steps:
+      - step: "Create a hierarchy view whose child_field targets res.partner.bank"
+        action: "create"
+        model: "ir.ui.view"
+        expect_error:
+          type: "ValidationError"
+          message_contains: "child_field"
+        values:
+          name: "Partner Hierarchy Child Field Foreign Model"
+          model: "res.partner"
+          type: "hierarchy"
+          arch: |
+            <hierarchy child_field="bank_ids" />
+
+  - name: "ssi_web_hierarchy_view - child_field pointing nowhere is rejected"
+    steps:
+      - step: "Create a hierarchy view whose child_field does not exist"
+        action: "create"
+        model: "ir.ui.view"
+        expect_error:
+          type: "ValidationError"
+          message_contains: "does not exist"
+        values:
+          name: "Partner Hierarchy Child Field Unknown"
+          model: "res.partner"
+          type: "hierarchy"
+          arch: |
+            <hierarchy child_field="no_such_field_at_all" />
+
+  - name: "ssi_web_hierarchy_view - parent_field pointing nowhere is rejected"
+    steps:
+      - step: "Create a hierarchy view whose parent_field does not exist"
+        action: "create"
+        model: "ir.ui.view"
+        expect_error:
+          type: "ValidationError"
+          message_contains: "does not exist"
+        values:
+          name: "Partner Hierarchy Parent Field Unknown"
+          model: "res.partner"
+          type: "hierarchy"
+          arch: |
+            <hierarchy parent_field="no_such_field_at_all" />
+
+  - name: "ssi_web_hierarchy_view - Action view_mode accepts hierarchy"
+    steps:
+      - step: "Create a hierarchy view on res.partner"
+        action: "create"
+        model: "ir.ui.view"
+        save_as: "view"
+        values:
+          name: "Partner Hierarchy For Action"
+          model: "res.partner"
+          type: "hierarchy"
+          arch: |
+            <hierarchy parent_field="parent_id" child_field="child_ids" />
+      - step: "Create an action whose view_mode contains hierarchy"
+        action: "create"
+        model: "ir.actions.act_window"
+        save_as: "action"
+        values:
+          name: "Partner Hierarchy Action"
+          res_model: "res.partner"
+          view_mode: "tree,form,hierarchy"
+      - step: "Assert the action view_mode was stored"
+        action: "assert"
+        target: "action"
+        asserts:
+          view_mode:
+            type: "value"
+            expected: "tree,form,hierarchy"
+      - step: "Pin the hierarchy view on the action"
+        action: "create"
+        model: "ir.actions.act_window.view"
+        save_as: "action_view"
+        values:
+          act_window_id: "REC: action.id"
+          view_id: "REC: view.id"
+          view_mode: "hierarchy"
+          sequence: 30
+      - step: "Assert the pinned view is a hierarchy view"
+        action: "assert"
+        target: "action_view"
+        asserts:
+          view_mode:
+            type: "value"
+            expected: "hierarchy"
+          view_id.type:
+            type: "value"
+            expected: "hierarchy"

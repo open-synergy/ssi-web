@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2026 OpenSynergy Indonesia
+     Copyright 2026 PT. Simetri Sinergi Indonesia
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/AGPL). -->
+<odoo>
+    <template
+        id="assets_backend"
+        name="ssi_web_hierarchy_view assets"
+        inherit_id="web.assets_backend"
+    >
+        <xpath expr="." position="inside">
+            <link
+                rel="stylesheet"
+                href="/ssi_web_hierarchy_view/static/src/scss/hierarchy.scss"
+            />
+            <script
+                type="text/javascript"
+                src="/ssi_web_hierarchy_view/static/src/js/hierarchy_model.js"
+            />
+            <script
+                type="text/javascript"
+                src="/ssi_web_hierarchy_view/static/src/js/hierarchy_renderer.js"
+            />
+            <script
+                type="text/javascript"
+                src="/ssi_web_hierarchy_view/static/src/js/hierarchy_controller.js"
+            />
+            <script
+                type="text/javascript"
+                src="/ssi_web_hierarchy_view/static/src/js/hierarchy_view.js"
+            />
+        </xpath>
+    </template>
+</odoo>
