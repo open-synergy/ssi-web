@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Copyright 2026 OpenSynergy Indonesia
+     Copyright 2026 PT. Simetri Sinergi Indonesia
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/AGPL). -->
+<templates id="template" xml:space="preserve">
+
+    <t t-name="ssi_web_hierarchy_view.Buttons">
+        <div class="o_hierarchy_buttons">
+            <button
+                type="button"
+                class="btn btn-secondary o_hierarchy_button_expand_all"
+            >Expand All</button>
+            <button
+                type="button"
+                class="btn btn-secondary o_hierarchy_button_collapse_all"
+            >Collapse All</button>
+        </div>
+    </t>
+
+    <t t-name="ssi_web_hierarchy_view.Table">
+        <table class="table table-sm o_hierarchy_table">
+            <thead>
+                <tr>
+                    <th class="o_hierarchy_header_main">
+                        <t t-if="columns.length" t-esc="columns[0].label" />
+                        <t t-else="">Name</t>
+                    </th>
+                    <t t-foreach="columns.slice(1)" t-as="column">
+                        <th t-esc="column.label" />
+                    </t>
+                </tr>
+            </thead>
+            <tbody>
+                <t t-foreach="rows" t-as="row">
+                    <tr class="o_hierarchy_row" t-att-data-key="row.key">
+                        <td class="o_hierarchy_cell_main">
+                            <span
+                                class="o_hierarchy_indent"
+                                t-attf-style="width: #{widget.indentWidth(row)}px;"
+                            />
+                            <span
+                                t-if="row.hasChildren"
+                                t-attf-class="o_hierarchy_toggle fa #{widget.toggleIconClass(row)}"
+                            />
+                            <span t-else="" class="o_hierarchy_toggle_placeholder" />
+                            <span
+                                class="o_hierarchy_label"
+                                t-esc="widget.mainLabel(row)"
+                            />
+                        </td>
+                        <t t-foreach="columns.slice(1)" t-as="column">
+                            <td t-esc="widget.formatCell(row, column)" />
+                        </t>
+                    </tr>
+                </t>
+            </tbody>
+        </table>
+    </t>
+
+    <t t-name="ssi_web_hierarchy_view.Empty">
+        <div class="o_hierarchy_empty o_view_nocontent">
+            <div class="o_nocontent_help">
+                <p class="o_view_nocontent_smiling_face">
+                    No record to display
+                </p>
+            </div>
+        </div>
+    </t>
+
+</templates>
