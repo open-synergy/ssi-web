@@ -12,6 +12,7 @@ setuptools.setup(
         'odoo14-addon-ssi_web_clear_all_filter',
         'odoo14-addon-ssi_web_edit_attachment_name',
         'odoo14-addon-ssi_web_gantt',
+        'odoo14-addon-ssi_web_hierarchy_view',
         'odoo14-addon-ssi_web_login',
         'odoo14-addon-ssi_web_server_action_confirmation',
         'odoo14-addon-ssi_web_sticky_list_header',
