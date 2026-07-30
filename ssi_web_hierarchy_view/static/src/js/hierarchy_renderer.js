@@ -115,6 +115,21 @@ odoo.define("ssi_web_hierarchy_view.HierarchyRenderer", function (require) {
         },
 
         /**
+         * Tells a row matching the active filter apart from a row only
+         * present because it is an ancestor of a match. Returns nothing
+         * outside search mode: in the full tree every row is equal.
+         *
+         * @param {Object} row
+         * @returns {String} the extra class of the row element
+         */
+        rowClass: function (row) {
+            if (!this.state.searchMode) {
+                return "";
+            }
+            return row.isMatch ? "o_hierarchy_match" : "o_hierarchy_context";
+        },
+
+        /**
          * @param {Object} row
          * @returns {String} the fontawesome class of the expand/collapse
          *      toggle

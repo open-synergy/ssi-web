@@ -19,6 +19,18 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
         return Array.isArray(value) ? value : [];
     }
 
+    /**
+     * @param {*} value a many2one value read by search_read/read, either
+     *      false or a [id, display_name] pair
+     * @returns {Number|Boolean} the id it carries, false when empty
+     */
+    function toId(value) {
+        if (Array.isArray(value)) {
+            return value.length ? value[0] : false;
+        }
+        return value || false;
+    }
+
     const HierarchyModel = AbstractModel.extend({
         /**
          * @override
@@ -30,6 +42,8 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
             this.rootCount = 0;
             this.offset = 0;
             this.limitReached = false;
+            this.searchMode = false;
+            this.searchTruncated = false;
         },
 
         /**
@@ -45,6 +59,8 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
                 nodeLimit: this.nodeLimit,
                 loadedCount: Object.keys(this.rows).length,
                 limitReached: this.limitReached,
+                searchMode: this.searchMode,
+                searchTruncated: this.searchTruncated,
             };
         },
 
@@ -59,10 +75,15 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
             this.defaultExpand = params.defaultExpand;
             this.nodeLimit = params.limit;
             this.domain = params.domain || [];
+            // The domain the view is loaded with belongs to the action,
+            // not to the search view: it is the baseline search mode is
+            // measured against, so that clearing every filter goes back
+            // to the full tree instead of staying in search mode forever.
+            this.baseDomain = this.domain.slice();
             this.context = params.context || {};
             this.rootLimit = ROOT_PAGE_SIZE;
             this.offset = 0;
-            return this._fetchRoots().then(() => this._applyDefaultExpand());
+            return this._fetch();
         },
 
         /**
@@ -85,7 +106,7 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
             if (options.limit !== undefined) {
                 this.rootLimit = options.limit;
             }
-            return this._fetchRoots().then(() => this._applyDefaultExpand());
+            return this._fetch();
         },
 
         // --------------------------------------------------------------------
@@ -160,6 +181,124 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
         // --------------------------------------------------------------------
 
         /**
+         * Builds the tree the current domain asks for: the search result
+         * tree while a search view filter is active, the full lazy tree
+         * otherwise.
+         *
+         * @private
+         * @returns {Promise}
+         */
+        _fetch: function () {
+            if (this._isSearchMode()) {
+                return this._fetchSearchTree();
+            }
+            return this._fetchRoots().then(() => this._applyDefaultExpand());
+        },
+
+        /**
+         * Search mode needs ``parent_field``: without it the parent chain
+         * of a match cannot be walked upwards at all, so the view falls
+         * back to flat filtering (see README). It also needs the search
+         * view to have actually added something to the action's own
+         * domain, otherwise every load would be a search.
+         *
+         * @private
+         * @returns {Boolean}
+         */
+        _isSearchMode: function () {
+            if (!this.parentField) {
+                return false;
+            }
+            return (
+                JSON.stringify(this.domain) !== JSON.stringify(this.baseDomain || [])
+            );
+        },
+
+        /**
+         * Loads the whole search result tree in two queries: one asking
+         * the server for the matching ids plus the ids of their
+         * ancestors, one reading the fields of that union in ``_order``.
+         *
+         * @private
+         * @returns {Promise}
+         */
+        _fetchSearchTree: function () {
+            return this._rpc({
+                model: this.modelName,
+                method: "hierarchy_search_ancestors",
+                args: [this.domain, this.parentField],
+                kwargs: {limit: this.nodeLimit},
+                context: this.context,
+            }).then((result) => {
+                this.searchMode = true;
+                this.searchTruncated = Boolean(result.truncated);
+                this.limitReached = false;
+                this.offset = 0;
+                const ids = result.matches.concat(result.ancestors);
+                if (!ids.length) {
+                    this.rows = {};
+                    this.rootKeys = [];
+                    this.rootCount = 0;
+                    return Promise.resolve();
+                }
+                return this._rpc({
+                    model: this.modelName,
+                    method: "search_read",
+                    kwargs: {
+                        domain: [["id", "in", ids]],
+                        fields: this.fieldNames,
+                        context: this.context,
+                    },
+                }).then((records) => this._buildSearchTree(records, result.matches));
+            });
+        },
+
+        /**
+         * Turns the flat search result into a tree: a record whose parent
+         * is part of the result becomes its child, every other record
+         * becomes a root. Every node holding children is registered as
+         * already loaded and already open, so the chain leading to a
+         * match is visible without the user opening anything and without
+         * ``default_expand`` having any say while the filter is active.
+         *
+         * @private
+         * @param {Array} records the union of the matches and their
+         *      ancestors, ordered by the model ``_order``
+         * @param {Array} matchIds ids of the records matching the domain
+         */
+        _buildSearchTree: function (records, matchIds) {
+            const matched = new Set(matchIds);
+            const loaded = new Set(records.map((record) => record.id));
+            const childrenOf = {};
+            const roots = [];
+            for (const record of records) {
+                const parentId = toId(record[this.parentField]);
+                if (parentId && loaded.has(parentId)) {
+                    childrenOf[parentId] = childrenOf[parentId] || [];
+                    childrenOf[parentId].push(record);
+                } else {
+                    roots.push(record);
+                }
+            }
+            this.rows = {};
+            const register = (record, parentKey, level) => {
+                const key = this._registerRow(record, parentKey, level);
+                const row = this.rows[key];
+                const children = childrenOf[record.id] || [];
+                row.isMatch = matched.has(record.id);
+                row.hasChildren = children.length > 0;
+                row.isLoaded = true;
+                row.isOpen = children.length > 0;
+                row.childKeys = children.map((child) =>
+                    register(child, key, level + 1)
+                );
+                return key;
+            };
+            this.rootKeys = roots.map((record) => register(record, false, 0));
+            this.rootCount = this.rootKeys.length;
+        },
+
+        /**
          * Opens a node, loading its children first if they were never
          * fetched. Refuses to grow past ``nodeLimit`` nodes in memory.
          *
@@ -208,6 +347,8 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
             ]).then(([count, records]) => {
                 this.rows = {};
                 this.limitReached = false;
+                this.searchMode = false;
+                this.searchTruncated = false;
                 this.rootCount = count;
                 this.rootKeys = records.map((record) =>
                     this._registerRow(record, false, 0)
@@ -251,6 +392,9 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
                 isOpen: false,
                 isLoaded: false,
                 childKeys: null,
+                // Only meaningful in search mode, where a row is either a
+                // match or one of the ancestors dragged along with it.
+                isMatch: false,
             };
             return key;
         },

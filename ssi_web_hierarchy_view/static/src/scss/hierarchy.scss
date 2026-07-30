@@ -28,6 +28,29 @@
     }
 }
 
+// While a search view filter is active, a row is either a record that
+// matched the filter or one of the ancestors dragged along to keep the
+// match reachable. Only the former is highlighted.
+.o_hierarchy_row.o_hierarchy_match {
+    background-color: #fff3cd;
+
+    &:hover {
+        background-color: #ffeeba;
+    }
+
+    .o_hierarchy_label {
+        font-weight: bold;
+    }
+}
+
+.o_hierarchy_row.o_hierarchy_context {
+    color: #6c757d;
+
+    .o_hierarchy_label {
+        font-style: italic;
+    }
+}
+
 .o_hierarchy_cell_main {
     display: flex;
     align-items: center;

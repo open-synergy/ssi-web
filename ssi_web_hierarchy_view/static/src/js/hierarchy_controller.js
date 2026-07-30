@@ -44,13 +44,15 @@ odoo.define("ssi_web_hierarchy_view.HierarchyController", function (require) {
 
         /**
          * Only the root level is paginated: children loaded by expanding a
-         * node are never counted or paged separately.
+         * node are never counted or paged separately. Search mode has no
+         * pager at all: what the server caps there is the number of
+         * matches, through the view's ``limit``, not a page of roots.
          *
          * @override
          * @private
          */
         _getPagingInfo: function (state) {
-            if (!state.rootCount) {
+            if (!state.rootCount || state.searchMode) {
                 return null;
             }
             return {
@@ -58,6 +60,56 @@ odoo.define("ssi_web_hierarchy_view.HierarchyController", function (require) {
                 limit: state.limit,
                 size: state.rootCount,
             };
+        },
+
+        /**
+         * @override
+         * @private
+         * @param {Object} state
+         * @returns {Promise}
+         */
+        _update: function (state) {
+            return this._super
+                .apply(this, arguments)
+                .then(() => this._warnIfSearchTruncated(state));
+        },
+
+        /**
+         * Warns once, when a search stops showing every match because the
+         * view's node limit was reached, and rearms the warning as soon as
+         * a later search fits again.
+         *
+         * @private
+         * @param {Object} state
+         */
+        _warnIfSearchTruncated: function (state) {
+            if (!state || !state.searchTruncated) {
+                this.searchTruncationWarned = false;
+                return;
+            }
+            if (this.searchTruncationWarned) {
+                return;
+            }
+            this.searchTruncationWarned = true;
+            this._notifyNodeLimit();
+        },
+
+        /**
+         * Tells the user that only part of the tree is on screen because
+         * the view's ``limit`` was reached. Shared by Expand All and by
+         * search mode, so both report the limit the same way.
+         *
+         * @private
+         */
+        _notifyNodeLimit: function () {
+            this.displayNotification({
+                type: "warning",
+                title: _t("Hierarchy view"),
+                message: _t(
+                    "Only part of the tree was expanded: this " +
+                        "view's node limit was reached."
+                ),
+            });
         },
 
         /**
@@ -107,14 +159,7 @@ odoo.define("ssi_web_hierarchy_view.HierarchyController", function (require) {
         _onExpandAllClicked: function () {
             this.model.expandAll().then((limitReached) => {
                 if (limitReached) {
-                    this.displayNotification({
-                        type: "warning",
-                        title: _t("Hierarchy view"),
-                        message: _t(
-                            "Only part of the tree was expanded: this " +
-                                "view's node limit was reached."
-                        ),
-                    });
+                    this._notifyNodeLimit();
                 }
                 return this._refresh();
             });
