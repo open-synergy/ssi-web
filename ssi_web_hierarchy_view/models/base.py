@@ -25,8 +25,10 @@ class Base(models.AbstractModel):
     Adds the server side of the hierarchy view to every model: one single
     call returns the records matching a domain together with their whole
     parent chain, so that the browser never has to walk that chain with
-    one RPC per level, and one single call returns the subtree total of a
-    numeric column for a whole level of nodes at once.
+    one RPC per level, one single call returns the subtree total of a
+    numeric column for a whole level of nodes at once, and one single call
+    returns the grand total of a numeric column over a whole set of nodes,
+    counting every record of it exactly once.
     """
 
     _inherit = "base"
@@ -218,6 +220,53 @@ Solution: Break the parent loop in the data of model %s
                 for field_name in field_names
             }
         return totals
+
+    def hierarchy_grand_total(
+        self, node_ids, field_names, parent_field=None, child_field=None
+    ):
+        """Return the total of every field over the union of the subtrees.
+
+        Called by the ``hierarchy`` view for its grand total row, once per
+        change of the set of nodes on screen. Adding up the subtree totals
+        of those nodes in the browser would be wrong as soon as one of
+        them is a descendant of another one, which is exactly what happens
+        in a ``child_field``-only view, where every record matching the
+        domain is a root: the descendant would then be counted once per
+        ancestor of it on screen. Here the subtrees are merged into one
+        single set of ids first, so every record is read once and summed
+        once, however many of its ancestors are on screen.
+
+        Descendants are walked, fields are validated and access rights are
+        honoured exactly like in :meth:`hierarchy_aggregate` — the two
+        methods share every helper — so a total over one single root
+        equals the total that method reports for that root.
+
+        :param node_ids: ids of the nodes whose subtrees are totalled,
+            an empty list totalling nothing at all
+        :param field_names: names of the numeric stored fields to total
+        :param parent_field: name of the ``many2one`` to this same model
+            carrying the parent of a record, ``None`` to walk
+            ``child_field`` instead
+        :param child_field: name of the ``one2many``/``many2many`` to
+            this same model carrying the children of a record, used only
+            when ``parent_field`` is not given
+        :return: dict ``{field_name: total}`` holding one entry for every
+            name of ``field_names``, the total being ``0`` when
+            ``node_ids`` is empty
+        :raises UserError: when a field of ``field_names`` does not
+            exist, is not numeric or is not stored, when neither
+            ``parent_field`` nor ``child_field`` is given, or when the
+            tree is nested deeper than ``HIERARCHY_MAX_DEPTH`` levels,
+            which only happens on cyclic data
+        """
+        self._check_hierarchy_aggregate_fields(field_names)
+        self._check_hierarchy_walk_fields(parent_field, child_field)
+        subtree_ids = self._hierarchy_subtree_ids(node_ids, parent_field, child_field)
+        values = self._hierarchy_aggregate_values(subtree_ids, field_names)
+        return {
+            field_name: sum(record.get(field_name) or 0 for record in values.values())
+            for field_name in field_names
+        }
 
     def _check_hierarchy_aggregate_fields(self, field_names):
         """Reject a field that carries no summable stored value.
