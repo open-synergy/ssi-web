@@ -1,5 +1,26 @@
-This module has no user interface of its own. It exposes state that other
-modules build on.
+Using the inbox
+~~~~~~~~~~~~~~~
+
+Open the **Discuss** menu. The mailbox sidebar (Inbox, Starred, History,
+channels) is the standard one and behaves as usual; the message area is what
+changed.
+
+* Every message is one row: author, record name, a one line preview of the
+  body, and the date. Hovering the date shows the full timestamp.
+* **Click a row** to open the full message underneath it, and click it again
+  to fold it back. Folding does not change the read state.
+* Rows that you have not read yet are **bold**. Opening a row marks it as
+  read; the envelope button on the right of the row flips the state back and
+  forth without opening anything.
+* An open row offers **Send message** and **Log note**. Both write to the
+  document the message came from, the first as a public message
+  (``mail.mt_comment``), the second as an internal note (``mail.mt_note``).
+  Messages that belong to no document — Odoo notifications, for instance —
+  show no such buttons.
+
+Nothing here changes the standard Discuss client action: only the menu is
+re-pointed, so ``mail.action_discuss`` still exists and still opens the
+standard conversation view for whoever calls it directly.
 
 Server side
 ~~~~~~~~~~~
@@ -46,3 +67,10 @@ it travels with every ``_message_format()`` payload. The client side
 
 There is no bus notification when the state changes, so several tabs open on
 the same session are not kept in sync.
+
+The inbox itself is the client action ``ssi_web_inbox.inbox``, declared by
+``ssi_web_inbox.action_inbox``. It extends the standard ``DiscussWidget``, so
+the control panel, the search bar and the mailbox selection are inherited
+untouched; only the rendering of the message list is replaced, and only when
+the list is shown inside Discuss — the chatter of a form view and the chat
+windows keep the standard conversation rendering.

@@ -379,39 +379,68 @@ ul.auto-toc {
 <tt class="docutils literal">set_message_done</tt> removes the message from Inbox and moves it to History.
 That is not a read/unread flag the way an e-mail client has one — in Gmail a
 message that has been opened stays in the Inbox, it only stops being bold.</p>
-<p>No field on <tt class="docutils literal">mail.message</tt> records “this user has read this message” without
-also taking the message out of the Inbox, so a Gmail-like inbox view has no
-data to decide which rows to render as bold.</p>
-<p>This module adds that missing state. <tt class="docutils literal">mail.message</tt> gains a read/unread flag
-<strong>per user</strong>, stored independently from <em>needaction</em>, readable from the web
-client through <tt class="docutils literal">_message_format</tt> and changeable through RPC methods.</p>
+<p>The Discuss screen has the matching limitation: every message is rendered in
+full, as a chronological chat, so a cross-record Inbox cannot be scanned. A
+user cannot look at twenty messages at once and then pick one to read.</p>
+<p>This module fixes both halves.</p>
+<p>Server side, <tt class="docutils literal">mail.message</tt> gains a read/unread flag <strong>per user</strong>, stored
+independently from <em>needaction</em>, readable from the web client through
+<tt class="docutils literal">_message_format</tt> and changeable through RPC methods.</p>
+<p>Client side, the Discuss menu opens a Gmail-like inbox: the mailbox sidebar
+stays on the left, but messages are listed as compact rows showing the author,
+the record name, a one line preview of the body and the date. Clicking a row
+expands the full message in place, together with the buttons needed to answer
+it or to log a note on the document the message came from. Unread rows are
+bold, and opening one marks it as read.</p>
 <p>Nothing of the standard behaviour changes: <tt class="docutils literal">set_message_done</tt>, the
 <em>needaction</em> counters and the Inbox mailbox all keep working exactly as
-before. The module only adds state; rendering an inbox with it is out of
-scope here.</p>
+before, and the standard <tt class="docutils literal">mail.action_discuss</tt> client action is left
+untouched so that modules referencing it stay valid.</p>
 <p><strong>Table of contents</strong></p>
 <div class="contents local topic" id="contents">
 <ul class="simple">
 <li><a class="reference internal" href="#usage" id="toc-entry-1">Usage</a><ul>
-<li><a class="reference internal" href="#server-side" id="toc-entry-2">Server side</a></li>
-<li><a class="reference internal" href="#client-side" id="toc-entry-3">Client side</a></li>
+<li><a class="reference internal" href="#using-the-inbox" id="toc-entry-2">Using the inbox</a></li>
+<li><a class="reference internal" href="#server-side" id="toc-entry-3">Server side</a></li>
+<li><a class="reference internal" href="#client-side" id="toc-entry-4">Client side</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#bug-tracker" id="toc-entry-4">Bug Tracker</a></li>
-<li><a class="reference internal" href="#credits" id="toc-entry-5">Credits</a><ul>
-<li><a class="reference internal" href="#authors" id="toc-entry-6">Authors</a></li>
-<li><a class="reference internal" href="#contributors" id="toc-entry-7">Contributors</a></li>
-<li><a class="reference internal" href="#maintainers" id="toc-entry-8">Maintainers</a></li>
+<li><a class="reference internal" href="#bug-tracker" id="toc-entry-5">Bug Tracker</a></li>
+<li><a class="reference internal" href="#credits" id="toc-entry-6">Credits</a><ul>
+<li><a class="reference internal" href="#authors" id="toc-entry-7">Authors</a></li>
+<li><a class="reference internal" href="#contributors" id="toc-entry-8">Contributors</a></li>
+<li><a class="reference internal" href="#maintainers" id="toc-entry-9">Maintainers</a></li>
 </ul>
 </li>
 </ul>
 </div>
 <div class="section" id="usage">
 <h2><a class="toc-backref" href="#toc-entry-1">Usage</a></h2>
-<p>This module has no user interface of its own. It exposes state that other
-modules build on.</p>
+<div class="section" id="using-the-inbox">
+<h3><a class="toc-backref" href="#toc-entry-2">Using the inbox</a></h3>
+<p>Open the <strong>Discuss</strong> menu. The mailbox sidebar (Inbox, Starred, History,
+channels) is the standard one and behaves as usual; the message area is what
+changed.</p>
+<ul class="simple">
+<li>Every message is one row: author, record name, a one line preview of the
+body, and the date. Hovering the date shows the full timestamp.</li>
+<li><strong>Click a row</strong> to open the full message underneath it, and click it again
+to fold it back. Folding does not change the read state.</li>
+<li>Rows that you have not read yet are <strong>bold</strong>. Opening a row marks it as
+read; the envelope button on the right of the row flips the state back and
+forth without opening anything.</li>
+<li>An open row offers <strong>Send message</strong> and <strong>Log note</strong>. Both write to the
+document the message came from, the first as a public message
+(<tt class="docutils literal">mail.mt_comment</tt>), the second as an internal note (<tt class="docutils literal">mail.mt_note</tt>).
+Messages that belong to no document — Odoo notifications, for instance —
+show no such buttons.</li>
+</ul>
+<p>Nothing here changes the standard Discuss client action: only the menu is
+re-pointed, so <tt class="docutils literal">mail.action_discuss</tt> still exists and still opens the
+standard conversation view for whoever calls it directly.</p>
+</div>
 <div class="section" id="server-side">
-<h3><a class="toc-backref" href="#toc-entry-2">Server side</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-3">Server side</a></h3>
 <p><tt class="docutils literal">mail.message</tt> gains two fields:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -451,7 +480,7 @@ messages.inbox_toggle_read()
 user cannot flag a message they may not see.</p>
 </div>
 <div class="section" id="client-side">
-<h3><a class="toc-backref" href="#toc-entry-3">Client side</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-4">Client side</a></h3>
 <p><tt class="docutils literal">inbox_read_partner_ids</tt> is appended to <tt class="docutils literal">_get_message_format_fields()</tt>, so
 it travels with every <tt class="docutils literal">_message_format()</tt> payload. The client side
 <tt class="docutils literal">mail.message</tt> model is patched accordingly and gains:</p>
@@ -463,10 +492,16 @@ method and then update the local state.</li>
 </ul>
 <p>There is no bus notification when the state changes, so several tabs open on
 the same session are not kept in sync.</p>
+<p>The inbox itself is the client action <tt class="docutils literal">ssi_web_inbox.inbox</tt>, declared by
+<tt class="docutils literal">ssi_web_inbox.action_inbox</tt>. It extends the standard <tt class="docutils literal">DiscussWidget</tt>, so
+the control panel, the search bar and the mailbox selection are inherited
+untouched; only the rendering of the message list is replaced, and only when
+the list is shown inside Discuss — the chatter of a form view and the chat
+windows keep the standard conversation rendering.</p>
 </div>
 </div>
 <div class="section" id="bug-tracker">
-<h2><a class="toc-backref" href="#toc-entry-4">Bug Tracker</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-5">Bug Tracker</a></h2>
 <p>Bugs are tracked on <a class="reference external" href="https://github.com/open-synergy/ssi-web/issues">GitHub Issues</a>.
 In case of trouble, please check there if your issue has already been reported.
 If you spotted it first, help us to smash it by providing a detailed and welcomed
@@ -474,22 +509,22 @@ If you spotted it first, help us to smash it by providing a detailed and welcome
 <p>Do not contact contributors directly about support or help with technical issues.</p>
 </div>
 <div class="section" id="credits">
-<h2><a class="toc-backref" href="#toc-entry-5">Credits</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-6">Credits</a></h2>
 <div class="section" id="authors">
-<h3><a class="toc-backref" href="#toc-entry-6">Authors</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-7">Authors</a></h3>
 <ul class="simple">
 <li>OpenSynergy Indonesia</li>
 <li>PT. Simetri Sinergi Indonesia</li>
 </ul>
 </div>
 <div class="section" id="contributors">
-<h3><a class="toc-backref" href="#toc-entry-7">Contributors</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-8">Contributors</a></h3>
 <ul class="simple">
 <li>Andhitia Rama &lt;<a class="reference external" href="mailto:andhitia.r&#64;gmail.com">andhitia.r&#64;gmail.com</a>&gt;</li>
 </ul>
 </div>
 <div class="section" id="maintainers">
-<h3><a class="toc-backref" href="#toc-entry-8">Maintainers</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-9">Maintainers</a></h3>
 <p>This module is part of the <a class="reference external" href="https://github.com/open-synergy/ssi-web/tree/14.0/ssi_web_inbox">open-synergy/ssi-web</a> project on GitHub.</p>
 <p>You are welcome to contribute.</p>
 </div>

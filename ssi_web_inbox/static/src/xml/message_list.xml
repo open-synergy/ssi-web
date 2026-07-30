@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Copyright 2026 OpenSynergy Indonesia
+     Copyright 2026 PT. Simetri Sinergi Indonesia
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/AGPL). -->
+<templates xml:space="preserve">
+    <!-- Only Discuss shows scannable rows. The very same message list also
+         renders the chatter of every form view and the chat windows, which
+         must keep the standard conversation rendering, hence the guard on
+         the thread viewer. -->
+    <t t-inherit="mail.MessageList" t-inherit-mode="extension">
+        <xpath expr="//Message" position="replace">
+            <t t-if="threadView.threadViewer.discuss">
+                <InboxMessageRow
+                    class="o_MessageList_item o_MessageList_message"
+                    hasCheckbox="props.hasMessageCheckbox"
+                    hasMarkAsReadIcon="props.haveMessagesMarkAsReadIcon"
+                    hasReplyIcon="props.haveMessagesReplyIcon"
+                    isSelected="props.selectedMessageLocalId === message.localId"
+                    messageLocalId="message.localId"
+                    threadViewLocalId="threadView.localId"
+                    t-ref="{{ message.localId }}"
+                />
+            </t>
+            <t t-else="">$0</t>
+        </xpath>
+    </t>
+</templates>

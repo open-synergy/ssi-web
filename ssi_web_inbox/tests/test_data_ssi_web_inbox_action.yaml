@@ -1,0 +1,43 @@
+options:
+  auto_refresh: true
+
+scenarios:
+  - name: "ssi_web_inbox - The inbox client action is registered"
+    steps:
+      - step: "Resolve the inbox client action"
+        action: "ref"
+        xml_id: "ssi_web_inbox.action_inbox"
+        save_as: "inbox_action"
+      - step: "Assert it opens the inbox client tag on the mailbox model"
+        action: "assert"
+        target: "inbox_action"
+        asserts:
+          name:
+            type: "value"
+            expected: "Discuss"
+          tag:
+            type: "value"
+            expected: "ssi_web_inbox.inbox"
+          res_model:
+            type: "value"
+            expected: "mail.channel"
+
+  # Re-pointing the menu must not damage the standard action: other modules
+  # reference mail.action_discuss and would break if it disappeared or
+  # started opening something else.
+  - name: "ssi_web_inbox - The standard Discuss action is left untouched"
+    steps:
+      - step: "Resolve the standard Discuss action"
+        action: "ref"
+        xml_id: "mail.action_discuss"
+        save_as: "discuss_action"
+      - step: "Assert it still exists with its own client tag"
+        action: "assert"
+        target: "discuss_action"
+        asserts:
+          id:
+            type: "value"
+            operator: "is_truthy"
+          tag:
+            type: "value"
+            expected: "mail.widgets.discuss"
