@@ -53,6 +53,17 @@ msgid ""
 "\n"
 "Context: Aggregate a hierarchy view column\n"
 "Database ID: %s\n"
+"Problem: Field %s of model %s reads its currency from %s, which does not exist\n"
+"Solution: Point currency_field of field %s to a field of model %s\n"
+msgstr ""
+
+#. module: ssi_web_hierarchy_view
+#: code:addons/ssi_web_hierarchy_view/models/base.py:0
+#, python-format
+msgid ""
+"\n"
+"Context: Aggregate a hierarchy view column\n"
+"Database ID: %s\n"
 "Problem: Model %s is nested deeper than %s levels\n"
 "Solution: Break the parent loop in the data of model %s\n"
 msgstr ""
@@ -234,6 +245,13 @@ msgstr ""
 #: model:ir.model.fields,field_description:ssi_web_hierarchy_view.field_ir_actions_act_window_view____last_update
 #: model:ir.model.fields,field_description:ssi_web_hierarchy_view.field_ir_ui_view____last_update
 msgid "Last Modified on"
+msgstr ""
+
+#. module: ssi_web_hierarchy_view
+#. openerp-web
+#: code:addons/ssi_web_hierarchy_view/static/src/js/hierarchy_renderer.js:0
+#, python-format
+msgid "Mixed currencies: these records do not share one currency."
 msgstr ""
 
 #. module: ssi_web_hierarchy_view
