@@ -64,6 +64,28 @@ msgid ""
 "\n"
 "Context: Validate hierarchy view architecture\n"
 "Database ID: %s\n"
+"Problem: Attribute decoration-%s is not a supported row decoration\n"
+"Solution: Use one of the supported decorations: %s\n"
+msgstr ""
+
+#. module: ssi_web_hierarchy_view
+#: code:addons/ssi_web_hierarchy_view/models/ir_ui_view.py:0
+#, python-format
+msgid ""
+"\n"
+"Context: Validate hierarchy view architecture\n"
+"Database ID: %s\n"
+"Problem: Attribute decoration-%s is not a valid Python expression: %s\n"
+"Solution: Write the value of decoration-%s as a Python expression\n"
+msgstr ""
+
+#. module: ssi_web_hierarchy_view
+#: code:addons/ssi_web_hierarchy_view/models/ir_ui_view.py:0
+#, python-format
+msgid ""
+"\n"
+"Context: Validate hierarchy view architecture\n"
+"Database ID: %s\n"
 "Problem: Attribute parent_field %s is not a many2one field of model %s\n"
 "Solution: Set parent_field to a many2one field pointing to %s\n"
 msgstr ""
