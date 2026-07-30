@@ -14,6 +14,39 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: ssi_web_hierarchy_view
+#: code:addons/ssi_web_hierarchy_view/models/base.py:0
+#, python-format
+msgid ""
+"\n"
+"Context: Resolve the parent chain of a hierarchy view search\n"
+"Database ID: %s\n"
+"Problem: Field %s of model %s is nested deeper than %s levels\n"
+"Solution: Break the parent loop in the data of model %s\n"
+msgstr ""
+
+#. module: ssi_web_hierarchy_view
+#: code:addons/ssi_web_hierarchy_view/models/base.py:0
+#, python-format
+msgid ""
+"\n"
+"Context: Search a hierarchy view with a filter\n"
+"Database ID: %s\n"
+"Problem: Field %s does not exist on model %s\n"
+"Solution: Set parent_field of the hierarchy tag to an existing field\n"
+msgstr ""
+
+#. module: ssi_web_hierarchy_view
+#: code:addons/ssi_web_hierarchy_view/models/base.py:0
+#, python-format
+msgid ""
+"\n"
+"Context: Search a hierarchy view with a filter\n"
+"Database ID: %s\n"
+"Problem: Field %s is not a many2one field of model %s\n"
+"Solution: Set parent_field to a many2one field pointing to %s\n"
+msgstr ""
+
+#. module: ssi_web_hierarchy_view
 #: code:addons/ssi_web_hierarchy_view/models/ir_ui_view.py:0
 #, python-format
 msgid ""
@@ -49,6 +82,11 @@ msgstr ""
 #. module: ssi_web_hierarchy_view
 #: model:ir.model,name:ssi_web_hierarchy_view.model_ir_actions_act_window_view
 msgid "Action Window View"
+msgstr ""
+
+#. module: ssi_web_hierarchy_view
+#: model:ir.model,name:ssi_web_hierarchy_view.model_base
+msgid "Base"
 msgstr ""
 
 #. module: ssi_web_hierarchy_view
