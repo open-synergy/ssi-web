@@ -1,0 +1,221 @@
+options:
+  auto_refresh: true
+
+setup:
+  steps:
+    - step: "Create the document the message is attached to"
+      action: "create"
+      model: "res.partner"
+      save_as: "partner"
+      values:
+        name: "Inbox Test Partner"
+    - step: "Create the message under test"
+      action: "create"
+      model: "mail.message"
+      save_as: "message"
+      values:
+        model: "res.partner"
+        res_id: "REC: partner.id"
+        message_type: "comment"
+        subtype_id: "mail.mt_comment"
+        body: "<p>Inbox test message</p>"
+
+scenarios:
+  - name: "ssi_web_inbox - A new message starts unread"
+    steps:
+      - step: "Assert the message is unread for the current user"
+        action: "assert"
+        target: "message"
+        asserts:
+          inbox_read:
+            type: "value"
+            operator: "is_falsy"
+          inbox_read_partner_ids:
+            type: "m2m"
+            check: "count"
+            expected_count: 0
+
+  - name: "ssi_web_inbox - inbox_set_read marks the message read"
+    steps:
+      - step: "Mark the message as read"
+        action: "call"
+        target: "message"
+        method: "inbox_set_read"
+      - step: "Assert the read state and the partner behind it"
+        action: "assert"
+        target: "message"
+        asserts:
+          inbox_read:
+            type: "value"
+            operator: "is_truthy"
+          inbox_read_partner_ids:
+            type: "m2m"
+            check: "exact"
+            expected_records:
+              - "REC: user.partner_id"
+
+  - name: "ssi_web_inbox - inbox_set_unread clears the read state"
+    steps:
+      - step: "Mark the message as read"
+        action: "call"
+        target: "message"
+        method: "inbox_set_read"
+      - step: "Mark the message as unread again"
+        action: "call"
+        target: "message"
+        method: "inbox_set_unread"
+      - step: "Assert the message is unread and nobody is linked"
+        action: "assert"
+        target: "message"
+        asserts:
+          inbox_read:
+            type: "value"
+            operator: "is_falsy"
+          inbox_read_partner_ids:
+            type: "m2m"
+            check: "count"
+            expected_count: 0
+
+  - name: "ssi_web_inbox - inbox_toggle_read flips the state both ways"
+    steps:
+      - step: "Toggle from unread to read"
+        action: "call"
+        target: "message"
+        method: "inbox_toggle_read"
+      - step: "Assert the message is now read"
+        action: "assert"
+        target: "message"
+        asserts:
+          inbox_read:
+            type: "value"
+            operator: "is_truthy"
+      - step: "Toggle from read back to unread"
+        action: "call"
+        target: "message"
+        method: "inbox_toggle_read"
+      - step: "Assert the message is unread again"
+        action: "assert"
+        target: "message"
+        asserts:
+          inbox_read:
+            type: "value"
+            operator: "is_falsy"
+          inbox_read_partner_ids:
+            type: "m2m"
+            check: "count"
+            expected_count: 0
+
+  - name: "ssi_web_inbox - The read state does not leak between users"
+    steps:
+      - step: "Mark the message as read as the demo user"
+        action: "call"
+        target: "message"
+        method: "inbox_set_read"
+        as_user: "base.user_demo"
+      - step: "Assert the message is read for the demo user"
+        action: "assert"
+        target: "message"
+        as_user: "base.user_demo"
+        asserts:
+          inbox_read:
+            type: "value"
+            operator: "is_truthy"
+      - step: "Assert the very same message is still unread for the admin user"
+        action: "assert"
+        target: "message"
+        as_user: "base.user_admin"
+        asserts:
+          inbox_read:
+            type: "value"
+            operator: "is_falsy"
+      - step: "Reset the read state so later scenarios start clean"
+        action: "call"
+        target: "message"
+        method: "inbox_set_unread"
+        as_user: "base.user_demo"
+
+  - name: "ssi_web_inbox - A non-admin user may change the read state"
+    steps:
+      - step: "Mark as read as the demo user, no AccessError expected"
+        action: "call"
+        target: "message"
+        method: "inbox_set_read"
+        as_user: "base.user_demo"
+      - step: "Toggle as the demo user, no AccessError expected"
+        action: "call"
+        target: "message"
+        method: "inbox_toggle_read"
+        as_user: "base.user_demo"
+      - step: "Assert the toggle brought the message back to unread"
+        action: "assert"
+        target: "message"
+        as_user: "base.user_demo"
+        asserts:
+          inbox_read:
+            type: "value"
+            operator: "is_falsy"
+      - step: "Mark as unread as the demo user, no AccessError expected"
+        action: "call"
+        target: "message"
+        method: "inbox_set_unread"
+        as_user: "base.user_demo"
+
+  - name: "ssi_web_inbox - inbox_read is searchable by its owner"
+    steps:
+      - step: "Mark the message as read as the demo user"
+        action: "call"
+        target: "message"
+        method: "inbox_set_read"
+        as_user: "base.user_demo"
+      - step: "Search read messages as the demo user"
+        action: "search"
+        model: "mail.message"
+        domain:
+          - ["inbox_read", "=", true]
+        as_user: "base.user_demo"
+        save_as: "read_messages"
+        expect_count: 1
+      - step: "Reset the read state so later scenarios start clean"
+        action: "call"
+        target: "message"
+        method: "inbox_set_unread"
+        as_user: "base.user_demo"
+
+  - name: "ssi_web_inbox - The search domain is not shared between users"
+    steps:
+      - step: "Mark the message as read as the demo user only"
+        action: "call"
+        target: "message"
+        method: "inbox_set_read"
+        as_user: "base.user_demo"
+      - step: "Search read messages as the admin user"
+        action: "search"
+        model: "mail.message"
+        domain:
+          - ["inbox_read", "=", true]
+        as_user: "base.user_admin"
+        save_as: "read_messages"
+        expect_count: 0
+      - step: "Reset the read state so later scenarios start clean"
+        action: "call"
+        target: "message"
+        method: "inbox_set_unread"
+        as_user: "base.user_demo"
+
+  - name: "ssi_web_inbox - Unreading a never read message is a no-op"
+    steps:
+      - step: "Mark an untouched message as unread"
+        action: "call"
+        target: "message"
+        method: "inbox_set_unread"
+      - step: "Assert nothing changed and no partner got linked"
+        action: "assert"
+        target: "message"
+        asserts:
+          inbox_read:
+            type: "value"
+            operator: "is_falsy"
+          inbox_read_partner_ids:
+            type: "m2m"
+            check: "count"
+            expected_count: 0
