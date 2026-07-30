@@ -100,14 +100,18 @@ the very bottom of the tree::
 * A cell showing a total carries the class ``o_hierarchy_aggregate``, so a
   total can be told apart from a plain value and restyled by a database
   without touching this module.
-* The **grand total row** adds up the subtree totals of the roots currently
-  on screen, so it follows the active domain and the active page of the
-  pager. The label given to ``sum=`` is its tooltip.
-* In a ``child_field``-only view every record matching the domain is a root
-  (see *Determining the hierarchy*), so the grand total adds up subtree
-  totals that overlap and a descendant is counted once per ancestor of it on
-  screen. Add ``parent_field`` next to ``child_field`` to get a grand total
-  that counts every record exactly once.
+* The **grand total row** totals the union of the subtrees of the roots
+  currently on screen, so it follows the active domain and the active page of
+  the pager. The label given to ``sum=`` is its tooltip.
+* Every record is counted **exactly once** in the grand total, however many
+  of its ancestors are on screen. This matters in a ``child_field``-only
+  view, where every record matching the domain is a root (see *Determining
+  the hierarchy*) and the subtrees of the rows therefore overlap: the grand
+  total there is deliberately **not** the sum of the column as it is
+  displayed, precisely because the displayed values overlap each other.
+* The grand total does **not** change when a node is opened or closed:
+  opening a node adds no root, and the total already covers every descendant
+  of the roots whether they are visible or not.
 * Rounding and formatting follow the field itself: ``digits`` for a float, and
   for a ``monetary`` column the currency named by the ``currency_field`` that
   field declares — the view fetches that currency field next to the column
@@ -125,6 +129,19 @@ not used, since it would require the walked field to be the model's
 descendant the user may not read is left out of the total, consistently with
 the rows that user sees. A tree nested deeper than 64 levels is treated as
 cyclic data and raises, rather than looping forever.
+
+The grand total row is computed by ``hierarchy_grand_total(node_ids,
+field_names, parent_field=None, child_field=None)``, a second method this
+module adds to every model. It merges the subtrees of ``node_ids`` into one
+single set of ids before summing, and returns ``{field_name: total}`` with
+one entry per given name — ``0`` for every name when ``node_ids`` is empty.
+That merge is what makes a record count exactly once even when several of
+its ancestors are on screen; it validates its fields, walks the tree and
+honours access rights exactly like ``hierarchy_aggregate``, so a grand total
+over one single root equals the total that method reports for that root. It
+is called only when the set of roots changes — first load, new domain, new
+page of the pager, entering or leaving search mode — never when a node is
+opened.
 
 Row decorations
 ---------------

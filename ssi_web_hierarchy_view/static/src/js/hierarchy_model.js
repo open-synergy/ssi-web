@@ -44,9 +44,10 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
             this.limitReached = false;
             this.searchMode = false;
             this.searchTruncated = false;
-            // Grand totals of the aggregated columns over the roots on
-            // screen, keyed by field name. Empty when no column asks for
-            // a total at all.
+            // Grand totals of the aggregated columns over the union of
+            // the subtrees of the roots on screen, keyed by field name,
+            // every record counted exactly once. Computed server side.
+            // Empty when no column asks for a total at all.
             this.totals = {};
         },
 
@@ -496,26 +497,49 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
         },
 
         /**
-         * Adds up the subtree totals of the roots currently on screen,
-         * which is what the grand total row shows. Only the roots are
-         * summed: the total of a root already covers its whole subtree, so
-         * adding the descendants would count them twice.
+         * Asks the server for the grand total row: the total of every
+         * aggregated column over the union of the subtrees of the roots
+         * currently on screen, every record counted exactly once.
+         *
+         * Adding up the subtree totals of the roots here instead would be
+         * wrong as soon as one root is a descendant of another one, which
+         * is exactly what a ``child_field``-only view produces, since
+         * every record matching the domain is a root there. The server
+         * merges the subtrees before summing, so the deduplication cannot
+         * be skipped by the browser.
+         *
+         * Called only when the set of roots changes — first load, new
+         * domain, new page of the pager, entering or leaving search mode.
+         * Opening a node leaves the roots untouched and therefore leaves
+         * the grand total untouched too, so it costs no call at all.
          *
          * @private
+         * @returns {Promise}
          */
         _computeTotals: function () {
             this.totals = {};
             if (!this.aggregateFieldNames.length) {
-                return;
+                return Promise.resolve();
             }
-            for (const name of this.aggregateFieldNames) {
-                let total = 0;
-                for (const key of this.rootKeys) {
-                    const aggregates = this.rows[key].aggregates;
-                    total += (aggregates && aggregates[name]) || 0;
+            const ids = this.rootKeys.map((key) => this.rows[key].id);
+            if (!ids.length) {
+                for (const name of this.aggregateFieldNames) {
+                    this.totals[name] = 0;
                 }
-                this.totals[name] = total;
+                return Promise.resolve();
             }
+            return this._rpc({
+                model: this.modelName,
+                method: "hierarchy_grand_total",
+                args: [ids, this.aggregateFieldNames],
+                kwargs: {
+                    parent_field: this.parentField || null,
+                    child_field: this.childField || null,
+                },
+                context: this.context,
+            }).then((totals) => {
+                this.totals = totals;
+            });
         },
 
         /**

@@ -460,8 +460,9 @@ odoo.define("ssi_web_hierarchy_view.HierarchyRenderer", function (require) {
         },
 
         /**
-         * The grand total of one column: the sum over every root currently
-         * on screen, so it follows the active domain and the pager.
+         * The grand total of one column: the total over the union of the
+         * subtrees of the roots currently on screen, every record counted
+         * exactly once, so it follows the active domain and the pager.
          *
          * @param {Object} column
          * @returns {String}

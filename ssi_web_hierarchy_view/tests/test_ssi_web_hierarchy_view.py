@@ -13,9 +13,10 @@ class TestSsiWebHierarchyView(YamlTransactionCase):
     """Covers the ``hierarchy`` view arch validation, search and totals.
 
     The arch validation scenarios live in the YAML file; the hierarchical
-    search and the subtree totals are asserted here because what is under
-    test is the value ``hierarchy_search_ancestors`` and
-    ``hierarchy_aggregate`` return.
+    search, the subtree totals and the grand total are asserted here
+    because what is under test is the value
+    ``hierarchy_search_ancestors``, ``hierarchy_aggregate`` and
+    ``hierarchy_grand_total`` return.
     """
 
     def _create_partner_chain(self, prefix):
@@ -444,6 +445,171 @@ class TestSsiWebHierarchyView(YamlTransactionCase):
         self.env["res.partner"].invalidate_cache()
         with self.assertRaises(UserError) as error:
             self.env["res.partner"].hierarchy_aggregate(
+                [root.id], ["color"], parent_field="parent_id"
+            )
+        self.assertIn("nested deeper than 64 levels", str(error.exception))
+
+    def test_grand_total_of_one_root_equals_its_subtree_total(self):
+        """Assert the grand total of a lone root equals its own total.
+
+        The grand total row and a parent row have to agree with each
+        other whenever there is nothing to deduplicate, otherwise the two
+        methods would be reporting two different hierarchies.
+
+        Pure Python — trigger P1 (L-01: the ``call`` action discards the
+        return value of a method, and L-02 only lets an assert reach a
+        field of a record, never a returned dict) and trigger P2 (L-04:
+        there is no float tolerance in YAML).
+        """
+        grandparent = self._create_partner_amount_chain("SSIWHV Grand One")[0]
+        partner_model = self.env["res.partner"]
+        totals = partner_model.hierarchy_grand_total(
+            [grandparent.id],
+            ["color", "partner_latitude"],
+            parent_field="parent_id",
+        )
+        subtree = partner_model.hierarchy_aggregate(
+            [grandparent.id],
+            ["color", "partner_latitude"],
+            parent_field="parent_id",
+        )
+        self.assertEqual(totals["color"], subtree[grandparent.id]["color"])
+        self.assertAlmostEqual(
+            totals["partner_latitude"],
+            subtree[grandparent.id]["partner_latitude"],
+            places=3,
+        )
+        self.assertEqual(totals["color"], 7)
+        self.assertAlmostEqual(totals["partner_latitude"], 60.875, places=3)
+
+    def test_grand_total_counts_a_descendant_only_once(self):
+        """Assert overlapping subtrees do not inflate the grand total.
+
+        This is the regression lock of the whole method: handing over a
+        grandparent, its child and its grandchild at once is exactly what
+        a ``child_field``-only view does, since every record matching the
+        domain is a root there. Summing the three subtree totals in the
+        browser would count the grandchild three times and the child
+        twice; the total has to stay the one of the grandparent alone.
+
+        Pure Python — trigger P1 (L-01: the ``call`` action discards the
+        return value of a method, and L-02 only lets an assert reach a
+        field of a record, never a returned dict) and trigger P2 (L-04:
+        there is no float tolerance in YAML).
+        """
+        grandparent, parent, child = self._create_partner_amount_chain(
+            "SSIWHV Grand Overlap"
+        )
+        totals = self.env["res.partner"].hierarchy_grand_total(
+            [grandparent.id, parent.id, child.id],
+            ["color", "partner_latitude"],
+            parent_field="parent_id",
+        )
+        self.assertEqual(totals["color"], 7)
+        self.assertAlmostEqual(totals["partner_latitude"], 60.875, places=3)
+
+    def test_grand_total_of_no_node_is_zero_per_field(self):
+        """Assert an empty node list still answers every asked field.
+
+        The browser draws a grand total row as soon as a column asks for
+        a total, so an empty page has to report ``0`` rather than a dict
+        holding nothing at all.
+
+        Pure Python — trigger P1 (L-01: the ``call`` action discards the
+        return value of a method, and L-02 only lets an assert reach a
+        field of a record, never a returned dict).
+        """
+        totals = self.env["res.partner"].hierarchy_grand_total(
+            [], ["color", "partner_latitude"], parent_field="parent_id"
+        )
+        self.assertEqual(set(totals), {"color", "partner_latitude"})
+        self.assertEqual(totals["color"], 0)
+        self.assertEqual(totals["partner_latitude"], 0)
+
+    def test_grand_total_by_parent_field_and_by_child_field_match(self):
+        """Assert both ways of walking the tree report one same total.
+
+        Pure Python — trigger P1 (L-01: the ``call`` action discards the
+        return value of a method) and trigger P2 (L-04: there is no float
+        tolerance in YAML).
+        """
+        grandparent, parent, child = self._create_partner_amount_chain(
+            "SSIWHV Grand Both"
+        )
+        node_ids = [grandparent.id, parent.id, child.id]
+        partner_model = self.env["res.partner"]
+        by_parent = partner_model.hierarchy_grand_total(
+            node_ids, ["color", "partner_latitude"], parent_field="parent_id"
+        )
+        by_child = partner_model.hierarchy_grand_total(
+            node_ids, ["color", "partner_latitude"], child_field="child_ids"
+        )
+        self.assertEqual(by_parent["color"], by_child["color"])
+        self.assertAlmostEqual(
+            by_parent["partner_latitude"],
+            by_child["partner_latitude"],
+            places=3,
+        )
+        self.assertAlmostEqual(by_child["partner_latitude"], 60.875, places=3)
+
+    def test_grand_total_rejects_a_non_numeric_field(self):
+        """Reject a grand total asked for on a field that is not numeric.
+
+        Pure Python — trigger P1 (L-01: the method is called for its
+        return value, and L-02 keeps YAML asserts on record fields, so
+        the guard cannot be reached declaratively).
+        """
+        with self.assertRaises(UserError) as error:
+            self.env["res.partner"].hierarchy_grand_total(
+                [], ["name"], parent_field="parent_id"
+            )
+        self.assertIn("is not a numeric field", str(error.exception))
+
+    def test_grand_total_rejects_a_field_that_is_not_stored(self):
+        """Reject a grand total asked for on a field that is not stored.
+
+        Pure Python — trigger P1 (L-01: the method is called for its
+        return value, and L-02 keeps YAML asserts on record fields, so
+        the guard cannot be reached declaratively).
+        """
+        with self.assertRaises(UserError) as error:
+            self.env["res.partner"].hierarchy_grand_total(
+                [], ["active_lang_count"], parent_field="parent_id"
+            )
+        self.assertIn("is not stored", str(error.exception))
+
+    def test_grand_total_rejects_a_missing_walk_field(self):
+        """Reject a grand total that cannot reach any descendant.
+
+        Pure Python — trigger P1 (L-01: the method is called for its
+        return value, and L-02 keeps YAML asserts on record fields, so
+        the guard cannot be reached declaratively).
+        """
+        with self.assertRaises(UserError) as error:
+            self.env["res.partner"].hierarchy_grand_total([], ["color"])
+        self.assertIn("Neither parent_field nor child_field", str(error.exception))
+
+    def test_grand_total_rejects_cyclic_data(self):
+        """Reject a grand total walk that never reaches a leaf record.
+
+        Pure Python — trigger P1 (L-01: the method is called for its
+        return value) combined with the raw SQL needed to produce the
+        cycle: ``res.partner._check_parent_id`` makes a cycle unwritable
+        through the ORM, and YAML has no way to bypass a constraint
+        (L-02).
+        """
+        root = self.env["res.partner"].create({"name": "SSIWHV Grand Cycle Root"})
+        child = self.env["res.partner"].create(
+            {"name": "SSIWHV Grand Cycle Child", "parent_id": root.id}
+        )
+        self.env["res.partner"].flush()
+        self.env.cr.execute(
+            "UPDATE res_partner SET parent_id = %s WHERE id = %s",
+            (child.id, root.id),
+        )
+        self.env["res.partner"].invalidate_cache()
+        with self.assertRaises(UserError) as error:
+            self.env["res.partner"].hierarchy_grand_total(
                 [root.id], ["color"], parent_field="parent_id"
             )
         self.assertIn("nested deeper than 64 levels", str(error.exception))
