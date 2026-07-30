@@ -1,8 +1,18 @@
 options:
   auto_refresh: true
 
+# Every step that touches the read state runs as an explicit user rather
+# than as the default uid=1 (OdooBot). ``base.partner_root`` is archived
+# (``active = False``) in core data, and reading a many2many to
+# ``res.partner`` applies ``active_test``, so a link to that partner is
+# filtered out of the read again and the state would never be observable.
+# Real users have an active partner, so this only affects the test env.
 setup:
   steps:
+    - step: "Resolve the user owning the read state under test"
+      action: "ref"
+      xml_id: "base.user_admin"
+      save_as: "reader"
     - step: "Create the document the message is attached to"
       action: "create"
       model: "res.partner"
@@ -23,9 +33,10 @@ setup:
 scenarios:
   - name: "ssi_web_inbox - A new message starts unread"
     steps:
-      - step: "Assert the message is unread for the current user"
+      - step: "Assert the message is unread for the reader"
         action: "assert"
         target: "message"
+        as_user: "reader"
         asserts:
           inbox_read:
             type: "value"
@@ -41,9 +52,11 @@ scenarios:
         action: "call"
         target: "message"
         method: "inbox_set_read"
+        as_user: "reader"
       - step: "Assert the read state and the partner behind it"
         action: "assert"
         target: "message"
+        as_user: "reader"
         asserts:
           inbox_read:
             type: "value"
@@ -52,7 +65,12 @@ scenarios:
             type: "m2m"
             check: "exact"
             expected_records:
-              - "REC: user.partner_id"
+              - "REC: reader.partner_id"
+      - step: "Reset the read state so later scenarios start clean"
+        action: "call"
+        target: "message"
+        method: "inbox_set_unread"
+        as_user: "reader"
 
   - name: "ssi_web_inbox - inbox_set_unread clears the read state"
     steps:
@@ -60,13 +78,16 @@ scenarios:
         action: "call"
         target: "message"
         method: "inbox_set_read"
+        as_user: "reader"
       - step: "Mark the message as unread again"
         action: "call"
         target: "message"
         method: "inbox_set_unread"
+        as_user: "reader"
       - step: "Assert the message is unread and nobody is linked"
         action: "assert"
         target: "message"
+        as_user: "reader"
         asserts:
           inbox_read:
             type: "value"
@@ -82,9 +103,11 @@ scenarios:
         action: "call"
         target: "message"
         method: "inbox_toggle_read"
+        as_user: "reader"
       - step: "Assert the message is now read"
         action: "assert"
         target: "message"
+        as_user: "reader"
         asserts:
           inbox_read:
             type: "value"
@@ -93,9 +116,11 @@ scenarios:
         action: "call"
         target: "message"
         method: "inbox_toggle_read"
+        as_user: "reader"
       - step: "Assert the message is unread again"
         action: "assert"
         target: "message"
+        as_user: "reader"
         asserts:
           inbox_read:
             type: "value"
@@ -208,9 +233,11 @@ scenarios:
         action: "call"
         target: "message"
         method: "inbox_set_unread"
+        as_user: "reader"
       - step: "Assert nothing changed and no partner got linked"
         action: "assert"
         target: "message"
+        as_user: "reader"
         asserts:
           inbox_read:
             type: "value"

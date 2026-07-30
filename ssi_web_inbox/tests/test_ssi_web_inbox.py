@@ -49,13 +49,20 @@ class TestSsiWebInbox(YamlTransactionCase):
         Pure Python — triggers P1 and P4 (L-01: the return value of the
         method is discarded by ``action: call``, and L-07: the result is
         a list of dicts, which a YAML assert cannot subscript per key).
+
+        Runs as ``base.user_admin`` rather than the default uid=1:
+        ``base.partner_root`` is archived in core data and reading a
+        many2many to ``res.partner`` applies ``active_test``, so the
+        link would be filtered out of the payload again.
         """
+        reader = self.env.ref("base.user_admin")
         message = self._create_message("Inbox Format Partner")
+        message = message.with_user(reader)
         message.inbox_set_read()
         formatted = message._message_format(message._get_message_format_fields())
         self.assertEqual(len(formatted), 1)
         self.assertIn("inbox_read_partner_ids", formatted[0])
         self.assertEqual(
             formatted[0]["inbox_read_partner_ids"],
-            [self.env.user.partner_id.id],
+            [reader.partner_id.id],
         )
