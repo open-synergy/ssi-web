@@ -22,7 +22,7 @@ addon | version | maintainers | summary
 [ssi_web_clear_all_filter](ssi_web_clear_all_filter/) | 14.0.1.1.0 |  | Web Clear All Filter
 [ssi_web_edit_attachment_name](ssi_web_edit_attachment_name/) | 14.0.1.1.0 |  | Web Edit Attachment Name
 [ssi_web_gantt](ssi_web_gantt/) | 14.0.2.0.0 |  | Web Gantt
-[ssi_web_hierarchy_view](ssi_web_hierarchy_view/) | 14.0.1.0.0 |  | Web Hierarchy View
+[ssi_web_hierarchy_view](ssi_web_hierarchy_view/) | 14.0.1.1.0 |  | Web Hierarchy View
 [ssi_web_inbox](ssi_web_inbox/) | 14.0.1.1.0 |  | Web Inbox
 [ssi_web_login](ssi_web_login/) | 14.0.1.1.0 |  | SSI Web Login
 [ssi_web_server_action_confirmation](ssi_web_server_action_confirmation/) | 14.0.1.1.0 |  | Web Server Action Confirmation
