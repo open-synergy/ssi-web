@@ -405,7 +405,7 @@ scenarios:
             <hierarchy parent_field="parent_id">
                 <field name="name" />
                 <field name="color" sum="Total Color" />
-                <field name="credit_limit" sum="Total Credit Limit" />
+                <field name="partner_latitude" sum="Total Latitude" />
             </hierarchy>
       - step: "Assert both sum attributes survived the arch validation"
         action: "assert"
@@ -425,7 +425,7 @@ scenarios:
           arch_db:
             type: "value"
             operator: "contains"
-            expected: 'sum="Total Credit Limit"'
+            expected: 'sum="Total Latitude"'
 
   - name: "ssi_web_hierarchy_view - sum on a char column is rejected"
     steps:

@@ -38,9 +38,13 @@ class TestSsiWebHierarchyView(YamlTransactionCase):
     def _create_partner_amount_chain(self, prefix):
         """Create a three level ``res.partner`` chain carrying amounts.
 
-        ``color`` is an integer and ``credit_limit`` a float, both stored
-        on ``res.partner`` by ``base`` itself, so the totals can be
-        asserted without depending on any other module being installed.
+        ``color`` is an integer and ``partner_latitude`` a float, both
+        stored on ``res.partner`` by ``base`` itself, so the totals can
+        be asserted without depending on any other module being
+        installed. Neither of them is a commercial field, unlike
+        ``credit_limit``: Odoo copies a commercial field from the
+        commercial partner down to its children, which would give every
+        row of the chain one and the same value.
 
         :param prefix: prefix made unique per test, so that the domains
             of one test never match the records of another
@@ -51,7 +55,7 @@ class TestSsiWebHierarchyView(YamlTransactionCase):
             {
                 "name": "%s Grandparent" % prefix,
                 "color": 1,
-                "credit_limit": 10.5,
+                "partner_latitude": 10.5,
             }
         )
         parent = partner_model.create(
@@ -59,7 +63,7 @@ class TestSsiWebHierarchyView(YamlTransactionCase):
                 "name": "%s Parent" % prefix,
                 "parent_id": grandparent.id,
                 "color": 2,
-                "credit_limit": 20.25,
+                "partner_latitude": 20.25,
             }
         )
         child = partner_model.create(
@@ -67,7 +71,7 @@ class TestSsiWebHierarchyView(YamlTransactionCase):
                 "name": "%s Child" % prefix,
                 "parent_id": parent.id,
                 "color": 4,
-                "credit_limit": 30.125,
+                "partner_latitude": 30.125,
             }
         )
         return grandparent, parent, child
@@ -284,11 +288,13 @@ class TestSsiWebHierarchyView(YamlTransactionCase):
         )
         totals = self.env["res.partner"].hierarchy_aggregate(
             [grandparent.id],
-            ["color", "credit_limit"],
+            ["color", "partner_latitude"],
             parent_field="parent_id",
         )
         self.assertEqual(totals[grandparent.id]["color"], 7)
-        self.assertAlmostEqual(totals[grandparent.id]["credit_limit"], 60.875, places=3)
+        self.assertAlmostEqual(
+            totals[grandparent.id]["partner_latitude"], 60.875, places=3
+        )
         self.assertNotIn(parent.id, totals)
         self.assertNotIn(child.id, totals)
 
@@ -302,11 +308,11 @@ class TestSsiWebHierarchyView(YamlTransactionCase):
         child = self._create_partner_amount_chain("SSIWHV Aggregate Leaf")[2]
         totals = self.env["res.partner"].hierarchy_aggregate(
             [child.id],
-            ["color", "credit_limit"],
+            ["color", "partner_latitude"],
             parent_field="parent_id",
         )
         self.assertEqual(totals[child.id]["color"], 4)
-        self.assertAlmostEqual(totals[child.id]["credit_limit"], 30.125, places=3)
+        self.assertAlmostEqual(totals[child.id]["partner_latitude"], 30.125, places=3)
 
     def test_aggregate_answers_every_id_of_one_call(self):
         """Assert one call covers a whole level rather than one node.
@@ -342,12 +348,12 @@ class TestSsiWebHierarchyView(YamlTransactionCase):
         partner_model = self.env["res.partner"]
         by_parent = partner_model.hierarchy_aggregate(
             [grandparent.id],
-            ["color", "credit_limit"],
+            ["color", "partner_latitude"],
             parent_field="parent_id",
         )
         by_child = partner_model.hierarchy_aggregate(
             [grandparent.id],
-            ["color", "credit_limit"],
+            ["color", "partner_latitude"],
             child_field="child_ids",
         )
         self.assertEqual(
@@ -355,12 +361,12 @@ class TestSsiWebHierarchyView(YamlTransactionCase):
             by_child[grandparent.id]["color"],
         )
         self.assertAlmostEqual(
-            by_parent[grandparent.id]["credit_limit"],
-            by_child[grandparent.id]["credit_limit"],
+            by_parent[grandparent.id]["partner_latitude"],
+            by_child[grandparent.id]["partner_latitude"],
             places=3,
         )
         self.assertAlmostEqual(
-            by_child[grandparent.id]["credit_limit"], 60.875, places=3
+            by_child[grandparent.id]["partner_latitude"], 60.875, places=3
         )
 
     def test_aggregate_rejects_an_unknown_field(self):
