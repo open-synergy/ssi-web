@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Copyright 2026 OpenSynergy Indonesia
+     Copyright 2026 PT. Simetri Sinergi Indonesia
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/AGPL). -->
+<templates xml:space="preserve">
+    <t t-name="ssi_web_inbox.InboxMessageRow" owl="1">
+        <div
+            class="o_InboxMessageRow"
+            t-att-class="{
+                'o-open': state.isOpen,
+                'o-unread': !message.isInboxRead,
+            }"
+        >
+            <div class="o_InboxMessageRow_summary" t-on-click="_onClickSummary">
+                <span class="o_InboxMessageRow_author" t-esc="authorName" />
+                <span class="o_InboxMessageRow_record" t-esc="recordName" />
+                <span class="o_InboxMessageRow_preview" t-esc="preview" />
+                <span
+                    class="o_InboxMessageRow_date"
+                    t-att-title="datetime"
+                    t-esc="message.dateFromNow"
+                />
+                <button
+                    class="o_InboxMessageRow_toggleRead btn btn-link"
+                    type="button"
+                    t-att-title="toggleReadTitle"
+                    t-att-aria-label="toggleReadTitle"
+                    t-on-click.stop="_onClickToggleRead"
+                >
+                    <i
+                        class="fa"
+                        t-att-class="message.isInboxRead ? 'fa-envelope-o' : 'fa-envelope-open-o'"
+                        role="img"
+                    />
+                </button>
+            </div>
+            <t t-if="state.isOpen">
+                <div class="o_InboxMessageRow_content">
+                    <Message
+                        class="o_InboxMessageRow_message"
+                        hasCheckbox="props.hasCheckbox"
+                        hasMarkAsReadIcon="props.hasMarkAsReadIcon"
+                        hasReplyIcon="props.hasReplyIcon"
+                        isSelected="props.isSelected"
+                        isSquashed="false"
+                        messageLocalId="props.messageLocalId"
+                        threadViewLocalId="props.threadViewLocalId"
+                    />
+                    <t t-if="composer">
+                        <div class="o_InboxMessageRow_commands">
+                            <button
+                                class="o_InboxMessageRow_buttonSendMessage btn btn-link"
+                                type="button"
+                                t-on-click="_onClickSendMessage"
+                            >Send message</button>
+                            <button
+                                class="o_InboxMessageRow_buttonLogNote btn btn-link"
+                                type="button"
+                                t-on-click="_onClickLogNote"
+                            >Log note</button>
+                        </div>
+                        <t t-if="state.hasComposer">
+                            <Composer
+                                class="o_InboxMessageRow_composer"
+                                composerLocalId="composer.localId"
+                                isExpandable="true"
+                            />
+                        </t>
+                    </t>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

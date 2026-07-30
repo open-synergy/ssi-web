@@ -9,9 +9,26 @@
         inherit_id="web.assets_backend"
     >
         <xpath expr="." position="inside">
+            <link rel="stylesheet" href="/ssi_web_inbox/static/src/scss/inbox.scss" />
             <script
                 type="text/javascript"
                 src="/ssi_web_inbox/static/src/js/models/message.js"
+            />
+            <script
+                type="text/javascript"
+                src="/ssi_web_inbox/static/src/js/utils/message_preview.js"
+            />
+            <script
+                type="text/javascript"
+                src="/ssi_web_inbox/static/src/js/components/inbox_message_row.js"
+            />
+            <script
+                type="text/javascript"
+                src="/ssi_web_inbox/static/src/js/components/message_list.js"
+            />
+            <script
+                type="text/javascript"
+                src="/ssi_web_inbox/static/src/js/widgets/inbox.js"
             />
         </xpath>
     </template>

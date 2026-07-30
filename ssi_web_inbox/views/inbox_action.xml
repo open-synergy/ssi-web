@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2026 OpenSynergy Indonesia
+     Copyright 2026 PT. Simetri Sinergi Indonesia
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/AGPL). -->
+<odoo>
+    <!-- Same shape as mail.action_discuss so the mailbox sidebar of the core
+         Discuss component keeps working as is; only the client tag differs. -->
+    <record id="action_inbox" model="ir.actions.client">
+        <field name="name">Discuss</field>
+        <field name="tag">ssi_web_inbox.inbox</field>
+        <field name="res_model">mail.channel</field>
+        <field
+            name="params"
+            eval="&quot;{ 'default_active_id': 'mail.box_inbox' }&quot;"
+        />
+    </record>
+    <!-- Only the menu is re-pointed. mail.action_discuss is left untouched so
+         modules referencing it stay valid. -->
+    <record id="mail.menu_root_discuss" model="ir.ui.menu">
+        <field name="action" ref="ssi_web_inbox.action_inbox" />
+    </record>
+</odoo>

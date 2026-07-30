@@ -20,6 +20,11 @@
     ],
     "data": [
         "views/assets.xml",
+        "views/inbox_action.xml",
+    ],
+    "qweb": [
+        "static/src/xml/inbox_message_row.xml",
+        "static/src/xml/message_list.xml",
     ],
     "demo": [],
 }

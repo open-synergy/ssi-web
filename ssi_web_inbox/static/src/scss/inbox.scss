@@ -1,0 +1,80 @@
+// Copyright 2026 OpenSynergy Indonesia
+// Copyright 2026 PT. Simetri Sinergi Indonesia
+// License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+
+.o_InboxMessageRow {
+    display: block;
+    width: 100%;
+    border-bottom: 1px solid #e9ecef;
+    background-color: #fff;
+
+    &.o-open {
+        background-color: #f8f9fa;
+    }
+}
+
+.o_InboxMessageRow_summary {
+    display: flex;
+    align-items: baseline;
+    padding: 6px 12px;
+    cursor: pointer;
+    // A row is a single scannable line: nothing may wrap and push the
+    // next row down.
+    white-space: nowrap;
+    overflow: hidden;
+
+    &:hover {
+        background-color: #f1f3f5;
+    }
+}
+
+// Unread rows are bold, the way an unread mail is in an e-mail client.
+// The whole line is emphasised, not only the author.
+.o_InboxMessageRow.o-unread .o_InboxMessageRow_summary {
+    font-weight: bold;
+}
+
+.o_InboxMessageRow_author {
+    flex: 0 0 auto;
+    width: 180px;
+    padding-right: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.o_InboxMessageRow_record {
+    flex: 0 0 auto;
+    max-width: 220px;
+    padding-right: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #6c757d;
+}
+
+.o_InboxMessageRow_preview {
+    flex: 1 1 auto;
+    padding-right: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #6c757d;
+}
+
+.o_InboxMessageRow_date {
+    flex: 0 0 auto;
+    padding-right: 8px;
+    color: #6c757d;
+}
+
+.o_InboxMessageRow_toggleRead {
+    flex: 0 0 auto;
+    padding: 0 4px;
+    line-height: 1;
+}
+
+.o_InboxMessageRow_content {
+    padding: 0 12px 8px 12px;
+}
+
+.o_InboxMessageRow_commands {
+    padding-left: 8px;
+}
