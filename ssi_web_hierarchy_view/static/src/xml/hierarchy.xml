@@ -60,6 +60,7 @@
                         <t t-foreach="columns.slice(1)" t-as="column">
                             <td
                                 t-attf-class="#{widget.cellClass(row, column)}"
+                                t-att-title="widget.cellTitle(row, column)"
                                 t-esc="widget.formatCell(row, column)"
                             />
                         </t>
@@ -72,7 +73,7 @@
                         <span class="o_hierarchy_total_label">Total</span>
                         <span
                             t-if="widget.hasTotal(columns[0])"
-                            class="o_hierarchy_label o_hierarchy_aggregate"
+                            t-attf-class="o_hierarchy_label #{widget.totalCellClass(columns[0])}"
                             t-att-title="widget.totalTitle(columns[0])"
                             t-esc="widget.formatTotal(columns[0])"
                         />

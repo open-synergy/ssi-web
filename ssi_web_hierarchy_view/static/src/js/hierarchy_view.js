@@ -97,6 +97,10 @@ odoo.define("ssi_web_hierarchy_view.HierarchyView", function (require) {
                 columns,
                 fields
             );
+            this.loadParams.aggregateWithCurrency = this._hasMonetaryAggregate(
+                columns,
+                fields
+            );
 
             this.withSearchPanel = false;
         },
@@ -156,6 +160,23 @@ odoo.define("ssi_web_hierarchy_view.HierarchyView", function (require) {
                 }
             }
             return _.uniq(names);
+        },
+
+        /**
+         * Whether the server has to report the currencies every total is
+         * made of. It only has to when at least one aggregated column is
+         * monetary: without any, no cell could ever be refused for
+         * mixing currencies, and asking would only widen the answer.
+         *
+         * @private
+         * @param {Array} columns
+         * @param {Object} fields viewInfo.fields
+         * @returns {Boolean}
+         */
+        _hasMonetaryAggregate: function (columns, fields) {
+            return this._aggregateFieldNames(columns, fields).some(
+                (name) => fields[name].type === "monetary"
+            );
         },
 
         /**

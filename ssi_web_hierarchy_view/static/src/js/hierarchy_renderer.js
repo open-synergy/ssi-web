@@ -12,6 +12,7 @@ odoo.define("ssi_web_hierarchy_view.HierarchyRenderer", function (require) {
     const session = require("web.session");
 
     const qweb = core.qweb;
+    const _t = core._t;
 
     // Horizontal indentation added per hierarchy level, in pixels.
     const INDENT_PX = 20;
@@ -20,6 +21,17 @@ odoo.define("ssi_web_hierarchy_view.HierarchyRenderer", function (require) {
     // of the record itself, so that a total can be told apart from a value
     // and restyled by a database without touching this module.
     const AGGREGATE_CLASS = "o_hierarchy_aggregate";
+
+    // Class carried next to AGGREGATE_CLASS by a cell refusing to show a
+    // total, because the records it is made of do not share one single
+    // currency. Separate so that a database can restyle exactly those
+    // cells without touching this module.
+    const MIXED_CURRENCY_CLASS = "o_hierarchy_aggregate_mixed";
+
+    // Shown instead of such a total: adding up amounts of different
+    // currencies is wrong arithmetic under a label that is wrong too, so
+    // no number is shown at all rather than a misleading one.
+    const MIXED_CURRENCY_VALUE = "—";
 
     // The currency field a monetary field falls back to when it declares
     // none of its own, the same fallback field_utils applies.
@@ -363,7 +375,8 @@ odoo.define("ssi_web_hierarchy_view.HierarchyRenderer", function (require) {
          * Formats one cell of a row for display, using the same formatters
          * a list view uses. A column asking for a total shows the subtree
          * total on a row that has children and the row's own value on a
-         * leaf.
+         * leaf. A total made of several currencies at once is refused
+         * rather than formatted, since no currency could label it.
          *
          * @param {Object} row
          * @param {Object} column
@@ -374,7 +387,15 @@ odoo.define("ssi_web_hierarchy_view.HierarchyRenderer", function (require) {
             if (!field) {
                 return "";
             }
-            return this._formatValue(this.cellValue(row, column), field, row.data);
+            if (this.isMixedCurrencyCell(row, column)) {
+                return MIXED_CURRENCY_VALUE;
+            }
+            return this._formatValue(
+                this.cellValue(row, column),
+                field,
+                row.data,
+                this._cellCurrencyId(row, column)
+            );
         },
 
         /**
@@ -386,7 +407,7 @@ odoo.define("ssi_web_hierarchy_view.HierarchyRenderer", function (require) {
          */
         cellValue: function (row, column) {
             if (this.isAggregateCell(row, column)) {
-                return row.aggregates[column.name];
+                return row.aggregates[column.name].total;
             }
             return row.data[column.name];
         },
@@ -411,12 +432,91 @@ odoo.define("ssi_web_hierarchy_view.HierarchyRenderer", function (require) {
         },
 
         /**
+         * A total is only shown as a number when every record it is made
+         * of uses one and the same currency. The set of those currencies
+         * is reported by the server, which knows every descendant, and
+         * not guessed from the rows the browser happens to have loaded.
+         *
+         * @param {Object} row
+         * @param {Object} column
+         * @returns {Boolean} whether the cell has to refuse its total
+         */
+        isMixedCurrencyCell: function (row, column) {
+            if (!this.isAggregateCell(row, column)) {
+                return false;
+            }
+            return this._isMixedCurrency(row.aggregates[column.name]);
+        },
+
+        /**
+         * @private
+         * @param {Object} total a {total, currencyIds} entry
+         * @returns {Boolean} whether it is made of several currencies
+         */
+        _isMixedCurrency: function (total) {
+            return Boolean(total && (total.currencyIds || []).length > 1);
+        },
+
+        /**
+         * @private
+         * @param {Object} total a {total, currencyIds} entry
+         * @returns {Number|Boolean} the one currency the total is made
+         *      of, false when it is made of none or of several of them
+         */
+        _singleCurrencyId: function (total) {
+            const currencyIds = (total && total.currencyIds) || [];
+            return currencyIds.length === 1 ? currencyIds[0] : false;
+        },
+
+        /**
+         * @private
+         * @param {Object} row
+         * @param {Object} column
+         * @returns {Number|Boolean} the currency an aggregated cell is
+         *      formatted with, false when the cell shows a plain value
+         */
+        _cellCurrencyId: function (row, column) {
+            if (!this.isAggregateCell(row, column)) {
+                return false;
+            }
+            return this._singleCurrencyId(row.aggregates[column.name]);
+        },
+
+        /**
          * @param {Object} row
          * @param {Object} column
          * @returns {String} the extra classes of a body cell
          */
         cellClass: function (row, column) {
-            return this.isAggregateCell(row, column) ? AGGREGATE_CLASS : "";
+            if (!this.isAggregateCell(row, column)) {
+                return "";
+            }
+            if (this.isMixedCurrencyCell(row, column)) {
+                return AGGREGATE_CLASS + " " + MIXED_CURRENCY_CLASS;
+            }
+            return AGGREGATE_CLASS;
+        },
+
+        /**
+         * @param {Object} row
+         * @param {Object} column
+         * @returns {String|undefined} the tooltip of a body cell, left
+         *      out entirely unless the cell refuses its total: QWeb only
+         *      drops an attribute for ``undefined``/``null``
+         */
+        cellTitle: function (row, column) {
+            if (!this.isMixedCurrencyCell(row, column)) {
+                return undefined;
+            }
+            return this.mixedCurrencyTitle();
+        },
+
+        /**
+         * @returns {String} what a refused total says instead of showing
+         *      a number, spelled out for the reader of the tooltip
+         */
+        mixedCurrencyTitle: function () {
+            return _t("Mixed currencies: these records do not share one currency.");
         },
 
         /**
@@ -439,24 +539,50 @@ odoo.define("ssi_web_hierarchy_view.HierarchyRenderer", function (require) {
 
         /**
          * @param {Object} column
+         * @returns {Boolean} whether the grand total of that column is
+         *      made of several currencies and has to be refused
+         */
+        isMixedCurrencyTotal: function (column) {
+            if (!this.hasTotal(column)) {
+                return false;
+            }
+            return this._isMixedCurrency(this.state.totals[column.name]);
+        },
+
+        /**
+         * @param {Object} column
          * @returns {String} the extra classes of a grand total row cell
          */
         totalCellClass: function (column) {
-            return this.hasTotal(column) ? AGGREGATE_CLASS : "";
+            if (!this.hasTotal(column)) {
+                return "";
+            }
+            if (this.isMixedCurrencyTotal(column)) {
+                return AGGREGATE_CLASS + " " + MIXED_CURRENCY_CLASS;
+            }
+            return AGGREGATE_CLASS;
         },
 
         /**
          * The label given to ``sum=`` becomes the tooltip of the grand
-         * total, the same way a list view uses it. ``undefined`` rather
-         * than ``false`` on a column without a total: QWeb only leaves an
-         * attribute out for ``undefined``/``null``, and would otherwise
-         * render ``title="false"``.
+         * total, the same way a list view uses it; a refused total says
+         * instead why it shows no number, which is the only place that
+         * explanation can be read. ``undefined`` rather than ``false``
+         * on a column without a total: QWeb only leaves an attribute out
+         * for ``undefined``/``null``, and would otherwise render
+         * ``title="false"``.
          *
          * @param {Object} column
          * @returns {String|undefined}
          */
         totalTitle: function (column) {
-            return this.hasTotal(column) ? column.sum : undefined;
+            if (!this.hasTotal(column)) {
+                return undefined;
+            }
+            if (this.isMixedCurrencyTotal(column)) {
+                return this.mixedCurrencyTitle();
+            }
+            return column.sum;
         },
 
         /**
@@ -475,19 +601,25 @@ odoo.define("ssi_web_hierarchy_view.HierarchyRenderer", function (require) {
             if (!field) {
                 return "";
             }
+            if (this.isMixedCurrencyTotal(column)) {
+                return MIXED_CURRENCY_VALUE;
+            }
+            const total = this.state.totals[column.name];
             return this._formatValue(
-                this.state.totals[column.name],
+                total.total,
                 field,
-                this._totalRowData()
+                this._totalRowData(),
+                this._singleCurrencyId(total)
             );
         },
 
         /**
          * @private
          * @returns {Object|Boolean} the values a monetary grand total
-         *      reads its currency from: those of the first root on
-         *      screen, every root of one page sharing one currency in
-         *      practice
+         *      falls back to for its currency, used only when the server
+         *      reported no currency at all — a total made of nothing but
+         *      zeros — since a total made of exactly one currency is
+         *      formatted with that very one
          */
         _totalRowData: function () {
             const rootKey = this.state.rootKeys[0];
@@ -501,33 +633,49 @@ odoo.define("ssi_web_hierarchy_view.HierarchyRenderer", function (require) {
          * @param {Object} field the field description of the column
          * @param {Object|Boolean} data the values the row was read with,
          *      needed by a monetary column to resolve its currency
+         * @param {Number|Boolean} currencyId the currency an aggregated
+         *      value is made of, false when there is no total behind it
          * @returns {String}
          */
-        _formatValue: function (value, field, data) {
+        _formatValue: function (value, field, data, currencyId) {
             const formatter = field_utils.format[field.type];
             if (!formatter) {
                 return value === false || value === undefined ? "" : String(value);
             }
-            return formatter(value, field, this._formatOptions(field, data));
+            return formatter(
+                value,
+                field,
+                this._formatOptions(field, data, currencyId)
+            );
         },
 
         /**
-         * A monetary value is formatted with the currency held by the
-         * ``currency_field`` the field declares itself, which the view
-         * fetches next to the column for that very reason.
+         * A total is formatted with the one currency the server reported
+         * it to be made of; a plain value, and a total made of nothing
+         * but zeros, with the currency held by the ``currency_field``
+         * the field declares itself, which the view fetches next to the
+         * column for that very reason.
          *
          * @private
          * @param {Object} field the field description of the column
          * @param {Object|Boolean} data the values the row was read with
+         * @param {Number|Boolean} currencyId the currency reported for
+         *      an aggregated value, false when there is none
          * @returns {Object} the options handed to the formatter
          */
-        _formatOptions: function (field, data) {
-            if (field.type !== "monetary" || !data) {
+        _formatOptions: function (field, data, currencyId) {
+            if (field.type !== "monetary") {
+                return {};
+            }
+            if (currencyId) {
+                return {currency_id: currencyId};
+            }
+            if (!data) {
                 return {};
             }
             const currencyField = field.currency_field || DEFAULT_CURRENCY_FIELD;
-            const currencyId = toId(data[currencyField]);
-            return currencyId ? {currency_id: currencyId} : {};
+            const rowCurrencyId = toId(data[currencyField]);
+            return rowCurrencyId ? {currency_id: rowCurrencyId} : {};
         },
 
         /**

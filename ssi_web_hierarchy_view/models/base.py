@@ -19,6 +19,10 @@ HIERARCHY_AGGREGATABLE_TYPES = [
     "monetary",
 ]
 
+# The currency field a monetary field is read with when it declares none
+# of its own, the very fallback ``fields.Monetary`` itself applies.
+HIERARCHY_DEFAULT_CURRENCY_FIELD = "currency_id"
+
 
 class Base(models.AbstractModel):
     """
@@ -166,7 +170,12 @@ Solution: Break the parent loop in the data of model %s
         raise UserError(error_message)
 
     def hierarchy_aggregate(
-        self, node_ids, field_names, parent_field=None, child_field=None
+        self,
+        node_ids,
+        field_names,
+        parent_field=None,
+        child_field=None,
+        with_currency=False,
     ):
         """Return the subtree total of every field for every given node.
 
@@ -197,32 +206,43 @@ Solution: Break the parent loop in the data of model %s
         :param child_field: name of the ``one2many``/``many2many`` to
             this same model carrying the children of a record, used only
             when ``parent_field`` is not given
+        :param with_currency: whether every entry has to report the
+            currencies its total is made of besides the total itself
         :return: dict ``{node_id: {field_name: total}}`` holding one
-            entry for every id of ``node_ids``
+            entry for every id of ``node_ids``, every ``total`` becoming
+            ``{"total": total, "currency_ids": [id, ...]}`` when
+            ``with_currency`` is asked for
         :raises UserError: when a field of ``field_names`` does not
-            exist, is not numeric or is not stored, when neither
-            ``parent_field`` nor ``child_field`` is given, or when the
-            tree is nested deeper than ``HIERARCHY_MAX_DEPTH`` levels,
-            which only happens on cyclic data
+            exist, is not numeric or is not stored, when a monetary
+            field names a currency field that does not exist, when
+            neither ``parent_field`` nor ``child_field`` is given, or
+            when the tree is nested deeper than ``HIERARCHY_MAX_DEPTH``
+            levels, which only happens on cyclic data
         """
         self._check_hierarchy_aggregate_fields(field_names)
         self._check_hierarchy_walk_fields(parent_field, child_field)
+        currency_fields = self._hierarchy_currency_fields(field_names, with_currency)
         subtree_ids = self._hierarchy_subtree_ids(node_ids, parent_field, child_field)
-        values = self._hierarchy_aggregate_values(subtree_ids, field_names)
+        values = self._hierarchy_aggregate_values(
+            subtree_ids, field_names, currency_fields
+        )
         totals = {}
         for node_id, record_ids in subtree_ids.items():
-            totals[node_id] = {
-                field_name: sum(
-                    values[record_id].get(field_name) or 0
-                    for record_id in record_ids
-                    if record_id in values
-                )
-                for field_name in field_names
-            }
+            records = [
+                values[record_id] for record_id in record_ids if record_id in values
+            ]
+            totals[node_id] = self._hierarchy_totals(
+                records, field_names, currency_fields, with_currency
+            )
         return totals
 
     def hierarchy_grand_total(
-        self, node_ids, field_names, parent_field=None, child_field=None
+        self,
+        node_ids,
+        field_names,
+        parent_field=None,
+        child_field=None,
+        with_currency=False,
     ):
         """Return the total of every field over the union of the subtrees.
 
@@ -250,23 +270,156 @@ Solution: Break the parent loop in the data of model %s
         :param child_field: name of the ``one2many``/``many2many`` to
             this same model carrying the children of a record, used only
             when ``parent_field`` is not given
+        :param with_currency: whether every entry has to report the
+            currencies its total is made of besides the total itself
         :return: dict ``{field_name: total}`` holding one entry for every
             name of ``field_names``, the total being ``0`` when
-            ``node_ids`` is empty
+            ``node_ids`` is empty, every ``total`` becoming
+            ``{"total": total, "currency_ids": [id, ...]}`` when
+            ``with_currency`` is asked for
         :raises UserError: when a field of ``field_names`` does not
-            exist, is not numeric or is not stored, when neither
-            ``parent_field`` nor ``child_field`` is given, or when the
-            tree is nested deeper than ``HIERARCHY_MAX_DEPTH`` levels,
-            which only happens on cyclic data
+            exist, is not numeric or is not stored, when a monetary
+            field names a currency field that does not exist, when
+            neither ``parent_field`` nor ``child_field`` is given, or
+            when the tree is nested deeper than ``HIERARCHY_MAX_DEPTH``
+            levels, which only happens on cyclic data
         """
         self._check_hierarchy_aggregate_fields(field_names)
         self._check_hierarchy_walk_fields(parent_field, child_field)
+        currency_fields = self._hierarchy_currency_fields(field_names, with_currency)
         subtree_ids = self._hierarchy_subtree_ids(node_ids, parent_field, child_field)
-        values = self._hierarchy_aggregate_values(subtree_ids, field_names)
-        return {
-            field_name: sum(record.get(field_name) or 0 for record in values.values())
-            for field_name in field_names
-        }
+        values = self._hierarchy_aggregate_values(
+            subtree_ids, field_names, currency_fields
+        )
+        return self._hierarchy_totals(
+            list(values.values()), field_names, currency_fields, with_currency
+        )
+
+    def _hierarchy_currency_fields(self, field_names, with_currency):
+        """Resolve the currency field of every monetary field asked for.
+
+        Nothing at all is resolved when ``with_currency`` is not asked
+        for: the answer then carries no currency, so reading one would
+        only widen the query for nothing.
+
+        The currency is taken from the ``currency_field`` the monetary
+        field declares itself, which is exactly what the browser
+        formats a monetary value with, so the two can never disagree.
+
+        :param field_names: names of the fields being totalled, already
+            validated by :meth:`_check_hierarchy_aggregate_fields`
+        :param with_currency: whether the caller asked for the
+            currencies at all
+        :return: dict ``{field_name: currency field name}``, the name
+            being ``False`` on a field that is not monetary, the dict
+            being empty when ``with_currency`` is not asked for
+        :raises UserError: when a monetary field names a currency field
+            that does not exist on this model
+        """
+        currency_fields = {}
+        if not with_currency:
+            return currency_fields
+
+        for field_name in field_names:
+            field = self._fields[field_name]
+            if field.type != "monetary":
+                currency_fields[field_name] = False
+                continue
+            currency_field = (
+                getattr(field, "currency_field", False)
+                or HIERARCHY_DEFAULT_CURRENCY_FIELD
+            )
+            if currency_field not in self._fields:
+                self._raise_hierarchy_currency_field_error(field_name, currency_field)
+            currency_fields[field_name] = currency_field
+        return currency_fields
+
+    def _raise_hierarchy_currency_field_error(self, field_name, currency_field):
+        """Report a monetary column whose currency cannot be reached.
+
+        :param field_name: name of the monetary field being totalled
+        :param currency_field: name that field points its currency at
+        :raises UserError: always
+        """
+        error_message = _(
+            """
+Context: Aggregate a hierarchy view column
+Database ID: %s
+Problem: Field %s of model %s reads its currency from %s, which does not exist
+Solution: Point currency_field of field %s to a field of model %s
+"""
+            % (
+                self.id,
+                field_name,
+                self._name,
+                currency_field,
+                field_name,
+                self._name,
+            )
+        )
+        raise UserError(error_message)
+
+    def _hierarchy_totals(self, records, field_names, currency_fields, with_currency):
+        """Total every field over a set of records already read.
+
+        Shared by :meth:`hierarchy_aggregate`, which calls it once per
+        node, and by :meth:`hierarchy_grand_total`, which calls it once
+        over the whole union, so the two can never drift apart.
+
+        :param records: list of dicts as read by
+            :meth:`_hierarchy_aggregate_values`
+        :param field_names: names of the fields to total
+        :param currency_fields: dict as returned by
+            :meth:`_hierarchy_currency_fields`
+        :param with_currency: whether every entry has to report the
+            currencies its total is made of
+        :return: dict ``{field_name: total}``, every ``total`` becoming
+            ``{"total": total, "currency_ids": [id, ...]}`` when
+            ``with_currency`` is asked for
+        """
+        totals = {}
+        for field_name in field_names:
+            total = sum(record.get(field_name) or 0 for record in records)
+            if not with_currency:
+                totals[field_name] = total
+                continue
+            totals[field_name] = {
+                "total": total,
+                "currency_ids": self._hierarchy_currency_ids(
+                    records, field_name, currency_fields.get(field_name)
+                ),
+            }
+        return totals
+
+    def _hierarchy_currency_ids(self, records, field_name, currency_field):
+        """Collect the currencies a total is really made of.
+
+        Only a record carrying a value that is neither zero nor empty
+        contributes its currency: a row worth nothing in another
+        currency says nothing about the currency of the total, and
+        letting it count would silence a column that is in fact sound.
+
+        :param records: list of dicts as read by
+            :meth:`_hierarchy_aggregate_values`
+        :param field_name: name of the field being totalled
+        :param currency_field: name of the field carrying the currency,
+            ``False`` on a field that is not monetary
+        :return: sorted list of currency ids, empty on a field that is
+            not monetary and on a total made of nothing but zeros
+        """
+        if not currency_field:
+            return []
+
+        currency_ids = set()
+        for record in records:
+            if not record.get(field_name):
+                continue
+            value = record.get(currency_field)
+            if isinstance(value, (list, tuple)):
+                value = value[0] if value else False
+            if value:
+                currency_ids.add(value)
+        return sorted(currency_ids)
 
     def _check_hierarchy_aggregate_fields(self, field_names):
         """Reject a field that carries no summable stored value.
@@ -422,7 +575,7 @@ Solution: Add parent_field, child_field, or both to the hierarchy tag
                 children_ids[record["id"]] = list(record[child_field])
         return children_ids
 
-    def _hierarchy_aggregate_values(self, subtree_ids, field_names):
+    def _hierarchy_aggregate_values(self, subtree_ids, field_names, currency_fields):
         """Read the values every subtree total is built from.
 
         One single query for the union of every subtree: a record belongs
@@ -436,6 +589,10 @@ Solution: Add parent_field, child_field, or both to the hierarchy tag
         :param subtree_ids: dict ``{node_id: set of ids}`` as returned by
             :meth:`_hierarchy_subtree_ids`
         :param field_names: names of the numeric fields to read
+        :param currency_fields: dict as returned by
+            :meth:`_hierarchy_currency_fields`, whose values are read
+            next to the numeric fields so that the currencies of a total
+            cost no second query
         :return: dict ``{record_id: {field_name: value}}``, holding no
             entry for a record the current user may not read
         """
@@ -445,10 +602,13 @@ Solution: Add parent_field, child_field, or both to the hierarchy tag
         if not all_ids:
             return {}
 
+        read_names = list(field_names)
+        for currency_field in currency_fields.values():
+            if currency_field and currency_field not in read_names:
+                read_names.append(currency_field)
+
         values = {}
-        for record in self.search_read(
-            [("id", "in", sorted(all_ids))], list(field_names)
-        ):
+        for record in self.search_read([("id", "in", sorted(all_ids))], read_names):
             values[record["id"]] = record
         return values
 

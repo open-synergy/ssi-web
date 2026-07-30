@@ -31,6 +31,36 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
         return value || false;
     }
 
+    /**
+     * @param {*} entry one field entry of a hierarchy_aggregate or
+     *      hierarchy_grand_total answer: a plain number when the
+     *      currencies were not asked for, a {total, currency_ids} pair
+     *      when they were
+     * @returns {Object} {total, currencyIds}, the one shape the renderer
+     *      reads whichever of the two the server answered
+     */
+    function toTotal(entry) {
+        if (entry && typeof entry === "object" && !Array.isArray(entry)) {
+            return {
+                total: entry.total || 0,
+                currencyIds: entry.currency_ids || [],
+            };
+        }
+        return {total: entry || 0, currencyIds: []};
+    }
+
+    /**
+     * @param {Object} entries the field entries of one answer
+     * @returns {Object} the same entries, every one of them normalized
+     */
+    function toTotals(entries) {
+        const totals = {};
+        for (const name of Object.keys(entries)) {
+            totals[name] = toTotal(entries[name]);
+        }
+        return totals;
+    }
+
     const HierarchyModel = AbstractModel.extend({
         /**
          * @override
@@ -47,7 +77,8 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
             // Grand totals of the aggregated columns over the union of
             // the subtrees of the roots on screen, keyed by field name,
             // every record counted exactly once. Computed server side.
-            // Empty when no column asks for a total at all.
+            // Each entry is a {total, currencyIds} pair. Empty when no
+            // column asks for a total at all.
             this.totals = {};
         },
 
@@ -79,6 +110,10 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
             this.childField = params.childField;
             this.parentField = params.parentField;
             this.aggregateFieldNames = params.aggregateFieldNames || [];
+            // Only a tree holding a monetary total needs the currencies:
+            // asking for them on an integer/float only tree would widen
+            // every answer for a list that is always empty.
+            this.aggregateWithCurrency = Boolean(params.aggregateWithCurrency);
             this.defaultExpand = params.defaultExpand;
             this.nodeLimit = params.limit;
             this.domain = params.domain || [];
@@ -413,9 +448,9 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
                 // match or one of the ancestors dragged along with it.
                 isMatch: false,
                 // Subtree totals of the aggregated columns, keyed by field
-                // name, own value of the row included. False until the
-                // server answered, and for good when no column asks for a
-                // total.
+                // name, own value of the row included, each entry being a
+                // {total, currencyIds} pair. False until the server
+                // answered, and for good when no column asks for a total.
                 aggregates: false,
             };
             return key;
@@ -483,6 +518,7 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
                 kwargs: {
                     parent_field: this.parentField || null,
                     child_field: this.childField || null,
+                    with_currency: this.aggregateWithCurrency,
                 },
                 context: this.context,
             }).then((totals) => {
@@ -491,7 +527,7 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
                     // JSON turns the integer keys of the answer into
                     // strings; indexing with the number reaches them all
                     // the same.
-                    row.aggregates = totals[row.id] || false;
+                    row.aggregates = totals[row.id] ? toTotals(totals[row.id]) : false;
                 }
             });
         },
@@ -524,7 +560,7 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
             const ids = this.rootKeys.map((key) => this.rows[key].id);
             if (!ids.length) {
                 for (const name of this.aggregateFieldNames) {
-                    this.totals[name] = 0;
+                    this.totals[name] = toTotal(0);
                 }
                 return Promise.resolve();
             }
@@ -535,10 +571,11 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
                 kwargs: {
                     parent_field: this.parentField || null,
                     child_field: this.childField || null,
+                    with_currency: this.aggregateWithCurrency,
                 },
                 context: this.context,
             }).then((totals) => {
-                this.totals = totals;
+                this.totals = toTotals(totals);
             });
         },
 

@@ -108,6 +108,18 @@
     font-weight: bold;
 }
 
+// A total the records underneath do not agree on the currency of. No
+// number is shown at all there, only an em dash: summing amounts of
+// different currencies is wrong arithmetic under a label that is wrong
+// too. Muted and not bold, so the dash cannot read as a value, and
+// help-cursored, since the tooltip is where the reason is written. The
+// rule sits after .o_hierarchy_aggregate, whose weight it undoes.
+.o_hierarchy_aggregate_mixed {
+    font-weight: normal;
+    color: #6c757d;
+    cursor: help;
+}
+
 // The grand total of every root currently on screen, drawn once at the very
 // bottom of the tree. The rule sits after the decoration classes so that it
 // is never tinted by a decoration of the arch.

@@ -115,33 +115,74 @@ the very bottom of the tree::
 * Rounding and formatting follow the field itself: ``digits`` for a float, and
   for a ``monetary`` column the currency named by the ``currency_field`` that
   field declares — the view fetches that currency field next to the column
-  for that very reason. The grand total row reads its currency from the first
-  root on screen.
+  for that very reason.
+
+Monetary totals and mixed currencies
+------------------------------------
+
+A total of a ``monetary`` column is only ever shown as a number when **every
+record it is made of uses one and the same currency**. That set of currencies
+is reported by the **server**, which knows every descendant, rather than read
+off whichever row the browser happens to have loaded:
+
+* One currency — the amount is shown, formatted with that very currency, on a
+  parent row and on the grand total row alike.
+* Several currencies — **no amount is shown at all**. The cell shows an em
+  dash (``—``) and says why in its ``title`` tooltip. Adding up amounts of
+  different currencies is wrong arithmetic, and labelling the result with one
+  of them is wrong twice over, so the cell refuses rather than mislead.
+* Such a cell carries the class ``o_hierarchy_aggregate_mixed`` next to
+  ``o_hierarchy_aggregate``, so a database can restyle exactly those cells
+  without touching this module.
+* **Only a record whose value is neither zero nor empty contributes its
+  currency.** A row worth ``0`` in another currency says nothing about the
+  currency of the total, and letting it count would silence a column that is
+  in fact perfectly sound.
+* A total made of nothing but zeros reports no currency at all; it is then
+  formatted with the currency of the row itself, and with that of the first
+  root on screen for the grand total row.
 
 The totals are computed by ``hierarchy_aggregate(node_ids, field_names,
-parent_field=None, child_field=None)``, a method this module adds to every
-model. It returns ``{node_id: {field_name: total}}`` with one entry per given
-id, and is called **once per level** — for every id of that level at once,
-never once per node. Descendants are walked through ``parent_field`` when it
-is set and through ``child_field`` otherwise; ``child_of`` is deliberately
-not used, since it would require the walked field to be the model's
-``_parent_name``. Access rights are honoured — there is no ``sudo()``: a
-descendant the user may not read is left out of the total, consistently with
-the rows that user sees. A tree nested deeper than 64 levels is treated as
-cyclic data and raises, rather than looping forever.
+parent_field=None, child_field=None, with_currency=False)``, a method this
+module adds to every model. It returns ``{node_id: {field_name: total}}``
+with one entry per given id, and is called **once per level** — for every id
+of that level at once, never once per node. Descendants are walked through
+``parent_field`` when it is set and through ``child_field`` otherwise;
+``child_of`` is deliberately not used, since it would require the walked
+field to be the model's ``_parent_name``. Access rights are honoured — there
+is no ``sudo()``: a descendant the user may not read is left out of the
+total, consistently with the rows that user sees. A tree nested deeper than
+64 levels is treated as cyclic data and raises, rather than looping forever.
 
 The grand total row is computed by ``hierarchy_grand_total(node_ids,
-field_names, parent_field=None, child_field=None)``, a second method this
-module adds to every model. It merges the subtrees of ``node_ids`` into one
-single set of ids before summing, and returns ``{field_name: total}`` with
-one entry per given name — ``0`` for every name when ``node_ids`` is empty.
-That merge is what makes a record count exactly once even when several of
-its ancestors are on screen; it validates its fields, walks the tree and
-honours access rights exactly like ``hierarchy_aggregate``, so a grand total
-over one single root equals the total that method reports for that root. It
-is called only when the set of roots changes — first load, new domain, new
-page of the pager, entering or leaving search mode — never when a node is
-opened.
+field_names, parent_field=None, child_field=None, with_currency=False)``, a
+second method this module adds to every model. It merges the subtrees of
+``node_ids`` into one single set of ids before summing, and returns
+``{field_name: total}`` with one entry per given name — ``0`` for every name
+when ``node_ids`` is empty. That merge is what makes a record count exactly
+once even when several of its ancestors are on screen; it validates its
+fields, walks the tree and honours access rights exactly like
+``hierarchy_aggregate``, so a grand total over one single root equals the
+total that method reports for that root. It is called only when the set of
+roots changes — first load, new domain, new page of the pager, entering or
+leaving search mode — never when a node is opened.
+
+Both methods take the same optional ``with_currency`` keyword argument:
+
+* ``with_currency=False``, the default, returns exactly the shapes above —
+  ``{node_id: {field_name: total}}`` and ``{field_name: total}`` — so any
+  existing caller keeps working untouched.
+* ``with_currency=True`` turns every field entry into
+  ``{"total": total, "currency_ids": [id, ...]}``. ``currency_ids`` holds the
+  currencies of the records that actually contributed a non-zero value, and
+  is an **empty list** on a column that is not ``monetary``, so the browser
+  may send every aggregated column in one single call without sorting them
+  out first. A ``monetary`` field whose ``currency_field`` does not exist on
+  the model is **rejected** rather than silently ignored.
+
+The browser only asks for ``with_currency=True`` when at least one aggregated
+column is ``monetary``; on any other tree the calls and their answers are
+exactly what they were.
 
 Row decorations
 ---------------
@@ -312,6 +353,9 @@ Known limitations
 * Column aggregation is a **sum** only: ``avg=``, ``min=``, ``max=`` and a
   count of the descendants are not supported, and neither is exporting the
   totals to XLSX/CSV.
+* A mixed currency total is refused, not resolved: amounts are never
+  converted to the company currency, and one cell never shows one subtotal
+  per currency (see *Monetary totals and mixed currencies*).
 
 Installation
 ============
