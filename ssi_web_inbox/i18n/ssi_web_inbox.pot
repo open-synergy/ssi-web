@@ -1,0 +1,61 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ssi_web_inbox
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 14.0\n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: ssi_web_inbox
+#: model:ir.model.fields,field_description:ssi_web_inbox.field_mail_message__display_name
+msgid "Display Name"
+msgstr ""
+
+#. module: ssi_web_inbox
+#: model:ir.model.fields,field_description:ssi_web_inbox.field_mail_message__id
+msgid "ID"
+msgstr ""
+
+#. module: ssi_web_inbox
+#: model:ir.model.fields,field_description:ssi_web_inbox.field_mail_message____last_update
+msgid "Last Modified on"
+msgstr ""
+
+#. module: ssi_web_inbox
+#: model:ir.model,name:ssi_web_inbox.model_mail_message
+msgid "Message"
+msgstr ""
+
+#. module: ssi_web_inbox
+#: model:ir.model.fields,help:ssi_web_inbox.field_mail_mail__inbox_read_partner_ids
+#: model:ir.model.fields,help:ssi_web_inbox.field_mail_message__inbox_read_partner_ids
+msgid ""
+"Partners who have marked this message as read. Independent from the "
+"needaction mechanism: a message can be read and still belong to the Inbox "
+"mailbox."
+msgstr ""
+
+#. module: ssi_web_inbox
+#: model:ir.model.fields,field_description:ssi_web_inbox.field_mail_mail__inbox_read
+#: model:ir.model.fields,field_description:ssi_web_inbox.field_mail_message__inbox_read
+msgid "Read"
+msgstr ""
+
+#. module: ssi_web_inbox
+#: model:ir.model.fields,field_description:ssi_web_inbox.field_mail_mail__inbox_read_partner_ids
+#: model:ir.model.fields,field_description:ssi_web_inbox.field_mail_message__inbox_read_partner_ids
+msgid "Read By"
+msgstr ""
+
+#. module: ssi_web_inbox
+#: model:ir.model.fields,help:ssi_web_inbox.field_mail_mail__inbox_read
+#: model:ir.model.fields,help:ssi_web_inbox.field_mail_message__inbox_read
+msgid "Whether the current user has marked this message as read."
+msgstr ""
