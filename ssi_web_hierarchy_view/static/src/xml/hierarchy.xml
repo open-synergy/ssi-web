@@ -18,8 +18,8 @@
     </t>
 
     <t t-name="ssi_web_hierarchy_view.Table">
-        <table class="table table-sm o_hierarchy_table">
-            <thead>
+        <table class="table table-sm o_hierarchy_table" role="tree">
+            <thead role="presentation">
                 <tr>
                     <th class="o_hierarchy_header_main">
                         <t t-if="columns.length" t-esc="columns[0].label" />
@@ -30,11 +30,17 @@
                     </t>
                 </tr>
             </thead>
-            <tbody>
+            <tbody role="presentation">
                 <t t-foreach="rows" t-as="row">
                     <tr
                         t-attf-class="o_hierarchy_row #{widget.rowClass(row)}"
                         t-att-data-key="row.key"
+                        role="treeitem"
+                        t-att-aria-level="widget.ariaLevel(row)"
+                        t-att-aria-expanded="widget.ariaExpanded(row)"
+                        t-att-aria-setsize="widget.ariaSetSize(row)"
+                        t-att-aria-posinset="widget.ariaPosInSet(row)"
+                        t-att-tabindex="widget.rowTabIndex(row)"
                     >
                         <td class="o_hierarchy_cell_main">
                             <span

@@ -1,3 +1,4 @@
+/* global py */
 /* Copyright 2026 OpenSynergy Indonesia
  * Copyright 2026 PT. Simetri Sinergi Indonesia
  * License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl). */
@@ -16,6 +17,25 @@ odoo.define("ssi_web_hierarchy_view.HierarchyView", function (require) {
 
     const DEFAULT_EXPAND = 0;
     const DEFAULT_LIMIT = 1000;
+
+    // Row decorations the hierarchy tag accepts, exactly the ones
+    // ssi_web_gantt accepts. The order is the order the classes are applied
+    // in, so a decoration listed later wins over an earlier one whenever
+    // several of them light up on the same row.
+    const DECORATIONS = [
+        "danger",
+        "warning",
+        "info",
+        "success",
+        "primary",
+        "secondary",
+        "muted",
+    ];
+
+    // Names read by a decoration expression. String literals are stripped
+    // before the match, so that a quoted word never passes for a field.
+    const IDENTIFIER_RE = /[A-Za-z_]\w*/g;
+    const STRING_LITERAL_RE = /'[^']*'|"[^"]*"/g;
 
     const HierarchyView = AbstractView.extend({
         display_name: _lt("Hierarchy"),
@@ -50,12 +70,14 @@ odoo.define("ssi_web_hierarchy_view.HierarchyView", function (require) {
 
             this.rendererParams.columns = columns;
             this.rendererParams.fields = fields;
+            this.rendererParams.decorations = this._parseDecorations(attrs);
 
             this.loadParams.modelName = this.controllerParams.modelName;
             this.loadParams.fieldNames = this._fieldNames(
                 columns,
                 childField,
-                parentField
+                parentField,
+                fields
             );
             this.loadParams.childField = childField;
             this.loadParams.parentField = parentField;
@@ -97,15 +119,18 @@ odoo.define("ssi_web_hierarchy_view.HierarchyView", function (require) {
          * Every field the tree reads has to be fetched by search_read/read:
          * the columns, plus ``child_field``/``parent_field`` themselves so
          * the model can tell whether a row has children and, in
-         * ``child_field`` mode, read them without an extra search.
+         * ``child_field`` mode, read them without an extra search, plus the
+         * fields a decoration expression reads, which are usually no
+         * column at all.
          *
          * @private
          * @param {Array} columns
          * @param {String|Boolean} childField
          * @param {String|Boolean} parentField
+         * @param {Object} fields viewInfo.fields
          * @returns {Array}
          */
-        _fieldNames: function (columns, childField, parentField) {
+        _fieldNames: function (columns, childField, parentField, fields) {
             const names = ["display_name"];
             for (const column of columns) {
                 names.push(column.name);
@@ -116,7 +141,60 @@ odoo.define("ssi_web_hierarchy_view.HierarchyView", function (require) {
             if (parentField) {
                 names.push(parentField);
             }
+            for (const name of this._decorationFieldNames(fields)) {
+                names.push(name);
+            }
             return _.uniq(names);
+        },
+
+        /**
+         * Compiles the ``decoration-*`` attributes of the arch once, so
+         * that the renderer only ever evaluates an already parsed
+         * expression, once per row and per decoration.
+         *
+         * @private
+         * @param {Object} attrs the arch attributes
+         * @returns {Object} compiled expressions, keyed by decoration
+         */
+        _parseDecorations: function (attrs) {
+            const decorations = {};
+            for (const decoration of DECORATIONS) {
+                const expression = attrs["decoration-" + decoration];
+                if (expression) {
+                    decorations[decoration] = py.parse(py.tokenize(expression));
+                }
+            }
+            return decorations;
+        },
+
+        /**
+         * The fields read by the decoration expressions. The server
+         * registers every one of them on the view, so a name is taken for
+         * a field exactly when it is one of the view's own fields; a
+         * symbol of the evaluation context (``uid``, ``today``, ...) never
+         * is.
+         *
+         * @private
+         * @param {Object} fields viewInfo.fields
+         * @returns {Array}
+         */
+        _decorationFieldNames: function (fields) {
+            const names = [];
+            for (const decoration of DECORATIONS) {
+                const expression = this.arch.attrs["decoration-" + decoration];
+                if (!expression) {
+                    continue;
+                }
+                const tokens =
+                    expression.replace(STRING_LITERAL_RE, " ").match(IDENTIFIER_RE) ||
+                    [];
+                for (const token of tokens) {
+                    if (fields[token]) {
+                        names.push(token);
+                    }
+                }
+            }
+            return names;
         },
     });
 

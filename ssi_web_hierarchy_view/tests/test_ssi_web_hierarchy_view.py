@@ -34,9 +34,83 @@ class TestSsiWebHierarchyView(YamlTransactionCase):
         )
         return grandparent, parent, child
 
+    def _create_hierarchy_view(self, name, arch):
+        """Create a ``hierarchy`` view on ``res.partner``.
+
+        :param name: name of the view, unique per test
+        :param arch: the arch of the view
+        :return: the created ``ir.ui.view`` record
+        """
+        return self.env["ir.ui.view"].create(
+            {
+                "name": name,
+                "model": "res.partner",
+                "type": "hierarchy",
+                "arch": arch,
+            }
+        )
+
     def test_ssi_web_hierarchy_view(self):
         """Run the ``hierarchy`` view type arch validation scenarios."""
         self.run_yaml_scenario("test_data_ssi_web_hierarchy_view.yaml")
+
+    def test_decoration_field_is_reported_to_the_browser(self):
+        """Assert a decoration-only field is reported by the view.
+
+        A field read by a ``decoration-*`` expression is usually no
+        column of the tree, so nothing else declares it; the browser only
+        fetches the fields the view reports, hence it has to be reported
+        even though no ``<field>`` names it.
+
+        Pure Python — trigger P1 (L-01: what is under test is the dict
+        ``fields_view_get`` returns, and L-02 only lets an assert reach a
+        field of a record, never a returned dict).
+        """
+        view = self._create_hierarchy_view(
+            "SSIWHV Decoration Field Reported",
+            """
+            <hierarchy parent_field="parent_id" decoration-danger="not active">
+                <field name="name" />
+            </hierarchy>
+            """,
+        )
+        result = self.env["res.partner"].fields_view_get(
+            view_id=view.id, view_type="hierarchy"
+        )
+        self.assertIn("active", result["fields"])
+        self.assertIn("name", result["fields"])
+        self.assertIn("parent_id", result["fields"])
+
+    def test_every_field_of_a_decoration_is_reported(self):
+        """Assert an expression reading several fields reports them all.
+
+        A field never named by any ``<field>`` and a field only named by
+        another decoration have to be reported just the same, otherwise
+        the expression would be evaluated against a value the browser
+        never fetched.
+
+        Pure Python — trigger P1 (L-01: what is under test is the dict
+        ``fields_view_get`` returns, and L-02 only lets an assert reach a
+        field of a record, never a returned dict).
+        """
+        view = self._create_hierarchy_view(
+            "SSIWHV Decoration Fields Reported",
+            """
+            <hierarchy
+                parent_field="parent_id"
+                decoration-warning="is_company and color == 1"
+                decoration-muted="employee"
+            >
+                <field name="name" />
+            </hierarchy>
+            """,
+        )
+        result = self.env["res.partner"].fields_view_get(
+            view_id=view.id, view_type="hierarchy"
+        )
+        self.assertIn("is_company", result["fields"])
+        self.assertIn("color", result["fields"])
+        self.assertIn("employee", result["fields"])
 
     def test_search_ancestors_of_a_grandchild(self):
         """Assert the parent chain returned for a deep match.
