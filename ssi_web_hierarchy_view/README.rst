@@ -20,8 +20,8 @@ flat list or through a ``child_of`` filter.
 
 This iteration is **read only**: dragging a row to reparent it, inline edit
 and ``groupBy`` are out of scope. Per column ``decoration-*``
-(``<field decoration-…>``), user resizable or hideable columns and numeric
-column aggregation (``sum=``) are not implemented either.
+(``<field decoration-…>``) and user resizable or hideable columns are not
+implemented either.
 
 Usage
 =====
@@ -74,6 +74,57 @@ The first ``<field>`` child of the ``hierarchy`` tag is the hierarchy column:
 it carries the indentation and the expand/collapse toggle. Every other
 ``<field>`` is a plain column. Without any ``<field>`` at all, the hierarchy
 column falls back to ``display_name``.
+
+Numeric column totals
+---------------------
+
+A numeric column carries ``sum="<label>"``, spelled exactly like a list
+view's own aggregate attribute. Every parent row then shows the total of its
+**whole subtree** instead of its own value, and a grand total row is drawn at
+the very bottom of the tree::
+
+    <hierarchy parent_field="parent_id">
+        <field name="name" />
+        <field name="balance" sum="Total Balance" />
+    </hierarchy>
+
+* Only ``integer``, ``float`` and ``monetary`` fields may carry ``sum``, and
+  only if they are **stored**: the total is computed server side with a
+  query, so a non-stored computed column cannot be summed. Anything else is
+  **rejected when the view is saved** rather than silently showing nothing.
+* The total of a parent row **includes the value of that row itself**, so a
+  parent total always equals the sum of the column as it is displayed
+  underneath it — which is what the reader of a chart of accounts expects.
+* A **leaf** row shows its own value, without the total styling: there is
+  nothing summed underneath it.
+* A cell showing a total carries the class ``o_hierarchy_aggregate``, so a
+  total can be told apart from a plain value and restyled by a database
+  without touching this module.
+* The **grand total row** adds up the subtree totals of the roots currently
+  on screen, so it follows the active domain and the active page of the
+  pager. The label given to ``sum=`` is its tooltip.
+* In a ``child_field``-only view every record matching the domain is a root
+  (see *Determining the hierarchy*), so the grand total adds up subtree
+  totals that overlap and a descendant is counted once per ancestor of it on
+  screen. Add ``parent_field`` next to ``child_field`` to get a grand total
+  that counts every record exactly once.
+* Rounding and formatting follow the field itself: ``digits`` for a float, and
+  for a ``monetary`` column the currency named by the ``currency_field`` that
+  field declares — the view fetches that currency field next to the column
+  for that very reason. The grand total row reads its currency from the first
+  root on screen.
+
+The totals are computed by ``hierarchy_aggregate(node_ids, field_names,
+parent_field=None, child_field=None)``, a method this module adds to every
+model. It returns ``{node_id: {field_name: total}}`` with one entry per given
+id, and is called **once per level** — for every id of that level at once,
+never once per node. Descendants are walked through ``parent_field`` when it
+is set and through ``child_field`` otherwise; ``child_of`` is deliberately
+not used, since it would require the walked field to be the model's
+``_parent_name``. Access rights are honoured — there is no ``sudo()``: a
+descendant the user may not read is left out of the total, consistently with
+the rows that user sees. A tree nested deeper than 64 levels is treated as
+cyclic data and raises, rather than looping forever.
 
 Row decorations
 ---------------
@@ -241,7 +292,9 @@ Known limitations
   a single cell in a list view, is not supported.
 * No user resizable or hideable columns, and no preference remembering
   either.
-* No numeric column aggregation (``sum=``).
+* Column aggregation is a **sum** only: ``avg=``, ``min=``, ``max=`` and a
+  count of the descendants are not supported, and neither is exporting the
+  totals to XLSX/CSV.
 
 Installation
 ============

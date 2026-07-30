@@ -58,11 +58,34 @@
                             />
                         </td>
                         <t t-foreach="columns.slice(1)" t-as="column">
-                            <td t-esc="widget.formatCell(row, column)" />
+                            <td
+                                t-attf-class="#{widget.cellClass(row, column)}"
+                                t-esc="widget.formatCell(row, column)"
+                            />
                         </t>
                     </tr>
                 </t>
             </tbody>
+            <tfoot t-if="widget.hasTotals()" role="presentation">
+                <tr class="o_hierarchy_total_row">
+                    <td class="o_hierarchy_cell_main">
+                        <span class="o_hierarchy_total_label">Total</span>
+                        <span
+                            t-if="widget.hasTotal(columns[0])"
+                            class="o_hierarchy_label o_hierarchy_aggregate"
+                            t-att-title="widget.totalTitle(columns[0])"
+                            t-esc="widget.formatTotal(columns[0])"
+                        />
+                    </td>
+                    <t t-foreach="columns.slice(1)" t-as="column">
+                        <td
+                            t-attf-class="#{widget.totalCellClass(column)}"
+                            t-att-title="widget.totalTitle(column)"
+                            t-esc="widget.formatTotal(column)"
+                        />
+                    </t>
+                </tr>
+            </tfoot>
         </table>
     </t>
 

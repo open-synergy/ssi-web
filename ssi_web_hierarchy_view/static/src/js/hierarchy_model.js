@@ -44,6 +44,10 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
             this.limitReached = false;
             this.searchMode = false;
             this.searchTruncated = false;
+            // Grand totals of the aggregated columns over the roots on
+            // screen, keyed by field name. Empty when no column asks for
+            // a total at all.
+            this.totals = {};
         },
 
         /**
@@ -61,6 +65,7 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
                 limitReached: this.limitReached,
                 searchMode: this.searchMode,
                 searchTruncated: this.searchTruncated,
+                totals: this.totals,
             };
         },
 
@@ -72,6 +77,7 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
             this.fieldNames = params.fieldNames;
             this.childField = params.childField;
             this.parentField = params.parentField;
+            this.aggregateFieldNames = params.aggregateFieldNames || [];
             this.defaultExpand = params.defaultExpand;
             this.nodeLimit = params.limit;
             this.domain = params.domain || [];
@@ -239,6 +245,7 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
                     this.rows = {};
                     this.rootKeys = [];
                     this.rootCount = 0;
+                    this.totals = {};
                     return Promise.resolve();
                 }
                 return this._rpc({
@@ -249,7 +256,14 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
                         fields: this.fieldNames,
                         context: this.context,
                     },
-                }).then((records) => this._buildSearchTree(records, result.matches));
+                }).then((records) => {
+                    this._buildSearchTree(records, result.matches);
+                    // The whole result tree is already in memory here, so
+                    // one single call covers every level of it at once.
+                    return this._fetchAggregates(Object.keys(this.rows)).then(() =>
+                        this._computeTotals()
+                    );
+                });
             });
         },
 
@@ -353,7 +367,9 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
                 this.rootKeys = records.map((record) =>
                     this._registerRow(record, false, 0)
                 );
-                return this._computeHasChildren(this.rootKeys);
+                return this._computeHasChildren(this.rootKeys)
+                    .then(() => this._fetchAggregates(this.rootKeys))
+                    .then(() => this._computeTotals());
             });
         },
 
@@ -395,6 +411,11 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
                 // Only meaningful in search mode, where a row is either a
                 // match or one of the ancestors dragged along with it.
                 isMatch: false,
+                // Subtree totals of the aggregated columns, keyed by field
+                // name, own value of the row included. False until the
+                // server answered, and for good when no column asks for a
+                // total.
+                aggregates: false,
             };
             return key;
         },
@@ -440,6 +461,64 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
         },
 
         /**
+         * Asks the server for the subtree total of every aggregated column
+         * of a whole level, in one single call for every id of that level
+         * rather than one call per node. A no-op when no column asks for a
+         * total, so a tree without ``sum=`` costs nothing extra.
+         *
+         * @private
+         * @param {Array} rowKeys the keys of one level of the tree
+         * @returns {Promise}
+         */
+        _fetchAggregates: function (rowKeys) {
+            if (!this.aggregateFieldNames.length || !rowKeys.length) {
+                return Promise.resolve();
+            }
+            const ids = rowKeys.map((key) => this.rows[key].id);
+            return this._rpc({
+                model: this.modelName,
+                method: "hierarchy_aggregate",
+                args: [ids, this.aggregateFieldNames],
+                kwargs: {
+                    parent_field: this.parentField || null,
+                    child_field: this.childField || null,
+                },
+                context: this.context,
+            }).then((totals) => {
+                for (const key of rowKeys) {
+                    const row = this.rows[key];
+                    // JSON turns the integer keys of the answer into
+                    // strings; indexing with the number reaches them all
+                    // the same.
+                    row.aggregates = totals[row.id] || false;
+                }
+            });
+        },
+
+        /**
+         * Adds up the subtree totals of the roots currently on screen,
+         * which is what the grand total row shows. Only the roots are
+         * summed: the total of a root already covers its whole subtree, so
+         * adding the descendants would count them twice.
+         *
+         * @private
+         */
+        _computeTotals: function () {
+            this.totals = {};
+            if (!this.aggregateFieldNames.length) {
+                return;
+            }
+            for (const name of this.aggregateFieldNames) {
+                let total = 0;
+                for (const key of this.rootKeys) {
+                    const aggregates = this.rows[key].aggregates;
+                    total += (aggregates && aggregates[name]) || 0;
+                }
+                this.totals[name] = total;
+            }
+        },
+
+        /**
          * @private
          * @param {Object} row
          * @returns {Promise}
@@ -480,6 +559,7 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
                 row.childKeys = ids
                     .filter((id) => byId[id])
                     .map((id) => this._registerRow(byId[id], row.key, row.level + 1));
+                return this._fetchAggregates(row.childKeys);
             });
         },
 
@@ -505,7 +585,9 @@ odoo.define("ssi_web_hierarchy_view.HierarchyModel", function (require) {
                 row.childKeys = records.map((record) =>
                     this._registerRow(record, row.key, row.level + 1)
                 );
-                return this._computeHasChildren(row.childKeys);
+                return this._computeHasChildren(row.childKeys).then(() =>
+                    this._fetchAggregates(row.childKeys)
+                );
             });
         },
 

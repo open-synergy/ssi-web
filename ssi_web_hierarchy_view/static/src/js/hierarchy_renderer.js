@@ -16,6 +16,27 @@ odoo.define("ssi_web_hierarchy_view.HierarchyRenderer", function (require) {
     // Horizontal indentation added per hierarchy level, in pixels.
     const INDENT_PX = 20;
 
+    // Class carried by a cell showing a subtree total instead of the value
+    // of the record itself, so that a total can be told apart from a value
+    // and restyled by a database without touching this module.
+    const AGGREGATE_CLASS = "o_hierarchy_aggregate";
+
+    // The currency field a monetary field falls back to when it declares
+    // none of its own, the same fallback field_utils applies.
+    const DEFAULT_CURRENCY_FIELD = "currency_id";
+
+    /**
+     * @param {*} value a many2one value read by search_read/read, either
+     *      false or a [id, display_name] pair
+     * @returns {Number|Boolean} the id it carries, false when empty
+     */
+    function toId(value) {
+        if (Array.isArray(value)) {
+            return value.length ? value[0] : false;
+        }
+        return value || false;
+    }
+
     // Row decorations, in the order their classes are applied: a decoration
     // listed later wins over an earlier one whenever several of them light
     // up on the same row. The stylesheet declares them in this very order.
@@ -340,7 +361,9 @@ odoo.define("ssi_web_hierarchy_view.HierarchyRenderer", function (require) {
 
         /**
          * Formats one cell of a row for display, using the same formatters
-         * a list view uses.
+         * a list view uses. A column asking for a total shows the subtree
+         * total on a row that has children and the row's own value on a
+         * leaf.
          *
          * @param {Object} row
          * @param {Object} column
@@ -348,15 +371,162 @@ odoo.define("ssi_web_hierarchy_view.HierarchyRenderer", function (require) {
          */
         formatCell: function (row, column) {
             const field = this.fields[column.name];
-            const value = row.data[column.name];
             if (!field) {
                 return "";
             }
-            const formatter = field_utils.format[field.type];
-            if (formatter) {
-                return formatter(value, field);
+            return this._formatValue(this.cellValue(row, column), field, row.data);
+        },
+
+        /**
+         * @param {Object} row
+         * @param {Object} column
+         * @returns {*} the raw value the cell displays: the subtree total
+         *      on an aggregated parent row, the record's own value
+         *      everywhere else
+         */
+        cellValue: function (row, column) {
+            if (this.isAggregateCell(row, column)) {
+                return row.aggregates[column.name];
             }
-            return value === false || value === undefined ? "" : String(value);
+            return row.data[column.name];
+        },
+
+        /**
+         * A cell shows a total only on a row that actually has children:
+         * on a leaf the total would be the row's own value anyway, and
+         * showing it as a total would read as if something were summed
+         * underneath it.
+         *
+         * @param {Object} row
+         * @param {Object} column
+         * @returns {Boolean}
+         */
+        isAggregateCell: function (row, column) {
+            return Boolean(
+                column.sum &&
+                    row.hasChildren &&
+                    row.aggregates &&
+                    column.name in row.aggregates
+            );
+        },
+
+        /**
+         * @param {Object} row
+         * @param {Object} column
+         * @returns {String} the extra classes of a body cell
+         */
+        cellClass: function (row, column) {
+            return this.isAggregateCell(row, column) ? AGGREGATE_CLASS : "";
+        },
+
+        /**
+         * @returns {Boolean} whether a grand total row has to be drawn at
+         *      all, which is the case as soon as one column asks for a
+         *      total
+         */
+        hasTotals: function () {
+            return Object.keys(this.state.totals || {}).length > 0;
+        },
+
+        /**
+         * @param {Object} column
+         * @returns {Boolean} whether the grand total row holds a value in
+         *      that column
+         */
+        hasTotal: function (column) {
+            return Boolean(column.sum && column.name in (this.state.totals || {}));
+        },
+
+        /**
+         * @param {Object} column
+         * @returns {String} the extra classes of a grand total row cell
+         */
+        totalCellClass: function (column) {
+            return this.hasTotal(column) ? AGGREGATE_CLASS : "";
+        },
+
+        /**
+         * The label given to ``sum=`` becomes the tooltip of the grand
+         * total, the same way a list view uses it. ``undefined`` rather
+         * than ``false`` on a column without a total: QWeb only leaves an
+         * attribute out for ``undefined``/``null``, and would otherwise
+         * render ``title="false"``.
+         *
+         * @param {Object} column
+         * @returns {String|undefined}
+         */
+        totalTitle: function (column) {
+            return this.hasTotal(column) ? column.sum : undefined;
+        },
+
+        /**
+         * The grand total of one column: the sum over every root currently
+         * on screen, so it follows the active domain and the pager.
+         *
+         * @param {Object} column
+         * @returns {String}
+         */
+        formatTotal: function (column) {
+            if (!this.hasTotal(column)) {
+                return "";
+            }
+            const field = this.fields[column.name];
+            if (!field) {
+                return "";
+            }
+            return this._formatValue(
+                this.state.totals[column.name],
+                field,
+                this._totalRowData()
+            );
+        },
+
+        /**
+         * @private
+         * @returns {Object|Boolean} the values a monetary grand total
+         *      reads its currency from: those of the first root on
+         *      screen, every root of one page sharing one currency in
+         *      practice
+         */
+        _totalRowData: function () {
+            const rootKey = this.state.rootKeys[0];
+            const row = rootKey ? this.state.rows[rootKey] : false;
+            return row ? row.data : false;
+        },
+
+        /**
+         * @private
+         * @param {*} value
+         * @param {Object} field the field description of the column
+         * @param {Object|Boolean} data the values the row was read with,
+         *      needed by a monetary column to resolve its currency
+         * @returns {String}
+         */
+        _formatValue: function (value, field, data) {
+            const formatter = field_utils.format[field.type];
+            if (!formatter) {
+                return value === false || value === undefined ? "" : String(value);
+            }
+            return formatter(value, field, this._formatOptions(field, data));
+        },
+
+        /**
+         * A monetary value is formatted with the currency held by the
+         * ``currency_field`` the field declares itself, which the view
+         * fetches next to the column for that very reason.
+         *
+         * @private
+         * @param {Object} field the field description of the column
+         * @param {Object|Boolean} data the values the row was read with
+         * @returns {Object} the options handed to the formatter
+         */
+        _formatOptions: function (field, data) {
+            if (field.type !== "monetary" || !data) {
+                return {};
+            }
+            const currencyField = field.currency_field || DEFAULT_CURRENCY_FIELD;
+            const currencyId = toId(data[currencyField]);
+            return currencyId ? {currency_id: currencyId} : {};
         },
 
         /**

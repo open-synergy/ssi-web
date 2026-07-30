@@ -10,11 +10,12 @@ from odoo.tests import tagged
 
 @tagged("post_install", "-at_install")
 class TestSsiWebHierarchyView(YamlTransactionCase):
-    """Covers the ``hierarchy`` view type arch validation and the search.
+    """Covers the ``hierarchy`` view arch validation, search and totals.
 
     The arch validation scenarios live in the YAML file; the hierarchical
-    search is asserted here because what is under test is the value
-    ``hierarchy_search_ancestors`` returns.
+    search and the subtree totals are asserted here because what is under
+    test is the value ``hierarchy_search_ancestors`` and
+    ``hierarchy_aggregate`` return.
     """
 
     def _create_partner_chain(self, prefix):
@@ -31,6 +32,47 @@ class TestSsiWebHierarchyView(YamlTransactionCase):
         )
         child = partner_model.create(
             {"name": "%s Child" % prefix, "parent_id": parent.id}
+        )
+        return grandparent, parent, child
+
+    def _create_partner_amount_chain(self, prefix):
+        """Create a three level ``res.partner`` chain carrying amounts.
+
+        ``color`` is an integer and ``partner_latitude`` a float, both
+        stored on ``res.partner`` by ``base`` itself, so the totals can
+        be asserted without depending on any other module being
+        installed. Neither of them is a commercial field, unlike
+        ``credit_limit``: Odoo copies a commercial field from the
+        commercial partner down to its children, which would give every
+        row of the chain one and the same value.
+
+        :param prefix: prefix made unique per test, so that the domains
+            of one test never match the records of another
+        :return: tuple of the grandparent, the parent and the child
+        """
+        partner_model = self.env["res.partner"]
+        grandparent = partner_model.create(
+            {
+                "name": "%s Grandparent" % prefix,
+                "color": 1,
+                "partner_latitude": 10.5,
+            }
+        )
+        parent = partner_model.create(
+            {
+                "name": "%s Parent" % prefix,
+                "parent_id": grandparent.id,
+                "color": 2,
+                "partner_latitude": 20.25,
+            }
+        )
+        child = partner_model.create(
+            {
+                "name": "%s Child" % prefix,
+                "parent_id": parent.id,
+                "color": 4,
+                "partner_latitude": 30.125,
+            }
         )
         return grandparent, parent, child
 
@@ -226,5 +268,182 @@ class TestSsiWebHierarchyView(YamlTransactionCase):
         with self.assertRaises(UserError) as error:
             self.env["res.partner"].hierarchy_search_ancestors(
                 [("id", "=", child.id)], "parent_id"
+            )
+        self.assertIn("nested deeper than 64 levels", str(error.exception))
+
+    def test_aggregate_totals_the_whole_subtree(self):
+        """Assert a grandparent total covers its children and grandchildren.
+
+        The total of a parent has to include the value of the parent
+        itself, otherwise it no longer equals the sum of the column as it
+        is displayed underneath it.
+
+        Pure Python — trigger P1 (L-01: the ``call`` action discards the
+        return value of a method, and L-02 only lets an assert reach a
+        field of a record, never a returned dict) and trigger P2 (L-04:
+        there is no float tolerance in YAML).
+        """
+        grandparent, parent, child = self._create_partner_amount_chain(
+            "SSIWHV Aggregate"
+        )
+        totals = self.env["res.partner"].hierarchy_aggregate(
+            [grandparent.id],
+            ["color", "partner_latitude"],
+            parent_field="parent_id",
+        )
+        self.assertEqual(totals[grandparent.id]["color"], 7)
+        self.assertAlmostEqual(
+            totals[grandparent.id]["partner_latitude"], 60.875, places=3
+        )
+        self.assertNotIn(parent.id, totals)
+        self.assertNotIn(child.id, totals)
+
+    def test_aggregate_of_a_leaf_is_its_own_value(self):
+        """Assert a leaf reports the value it carries itself.
+
+        Pure Python — trigger P1 (L-01: the ``call`` action discards the
+        return value of a method) and trigger P2 (L-04: there is no float
+        tolerance in YAML).
+        """
+        child = self._create_partner_amount_chain("SSIWHV Aggregate Leaf")[2]
+        totals = self.env["res.partner"].hierarchy_aggregate(
+            [child.id],
+            ["color", "partner_latitude"],
+            parent_field="parent_id",
+        )
+        self.assertEqual(totals[child.id]["color"], 4)
+        self.assertAlmostEqual(totals[child.id]["partner_latitude"], 30.125, places=3)
+
+    def test_aggregate_answers_every_id_of_one_call(self):
+        """Assert one call covers a whole level rather than one node.
+
+        The view aggregates a level in a single call, so every id handed
+        over has to come back with its own total.
+
+        Pure Python — trigger P1 (L-01: the ``call`` action discards the
+        return value of a method, and L-02 only lets an assert reach a
+        field of a record, never a returned dict).
+        """
+        grandparent, parent, child = self._create_partner_amount_chain(
+            "SSIWHV Aggregate Batch"
+        )
+        totals = self.env["res.partner"].hierarchy_aggregate(
+            [grandparent.id, parent.id, child.id],
+            ["color"],
+            parent_field="parent_id",
+        )
+        self.assertEqual(set(totals), {grandparent.id, parent.id, child.id})
+        self.assertEqual(totals[grandparent.id]["color"], 7)
+        self.assertEqual(totals[parent.id]["color"], 6)
+        self.assertEqual(totals[child.id]["color"], 4)
+
+    def test_aggregate_by_parent_field_and_by_child_field_match(self):
+        """Assert both ways of walking the tree report the same totals.
+
+        Pure Python — trigger P1 (L-01: the ``call`` action discards the
+        return value of a method) and trigger P2 (L-04: there is no float
+        tolerance in YAML).
+        """
+        grandparent = self._create_partner_amount_chain("SSIWHV Aggregate Both")[0]
+        partner_model = self.env["res.partner"]
+        by_parent = partner_model.hierarchy_aggregate(
+            [grandparent.id],
+            ["color", "partner_latitude"],
+            parent_field="parent_id",
+        )
+        by_child = partner_model.hierarchy_aggregate(
+            [grandparent.id],
+            ["color", "partner_latitude"],
+            child_field="child_ids",
+        )
+        self.assertEqual(
+            by_parent[grandparent.id]["color"],
+            by_child[grandparent.id]["color"],
+        )
+        self.assertAlmostEqual(
+            by_parent[grandparent.id]["partner_latitude"],
+            by_child[grandparent.id]["partner_latitude"],
+            places=3,
+        )
+        self.assertAlmostEqual(
+            by_child[grandparent.id]["partner_latitude"], 60.875, places=3
+        )
+
+    def test_aggregate_rejects_an_unknown_field(self):
+        """Reject a total asked for on a field that does not exist.
+
+        Pure Python — trigger P1 (L-01: the method is called for its
+        return value, and L-02 keeps YAML asserts on record fields, so
+        the guard cannot be reached declaratively).
+        """
+        with self.assertRaises(UserError) as error:
+            self.env["res.partner"].hierarchy_aggregate(
+                [], ["no_such_field_at_all"], parent_field="parent_id"
+            )
+        self.assertIn("no_such_field_at_all", str(error.exception))
+        self.assertIn("does not exist", str(error.exception))
+
+    def test_aggregate_rejects_a_non_numeric_field(self):
+        """Reject a total asked for on a field that is not numeric.
+
+        Pure Python — trigger P1 (L-01: the method is called for its
+        return value, and L-02 keeps YAML asserts on record fields, so
+        the guard cannot be reached declaratively).
+        """
+        with self.assertRaises(UserError) as error:
+            self.env["res.partner"].hierarchy_aggregate(
+                [], ["name"], parent_field="parent_id"
+            )
+        self.assertIn("is not a numeric field", str(error.exception))
+
+    def test_aggregate_rejects_a_field_that_is_not_stored(self):
+        """Reject a total asked for on a field that is not stored.
+
+        A total is built from a query, so a computed column that lives
+        nowhere in the database cannot be summed at all.
+
+        Pure Python — trigger P1 (L-01: the method is called for its
+        return value, and L-02 keeps YAML asserts on record fields, so
+        the guard cannot be reached declaratively).
+        """
+        with self.assertRaises(UserError) as error:
+            self.env["res.partner"].hierarchy_aggregate(
+                [], ["active_lang_count"], parent_field="parent_id"
+            )
+        self.assertIn("is not stored", str(error.exception))
+
+    def test_aggregate_rejects_a_missing_walk_field(self):
+        """Reject an aggregation that cannot reach any descendant.
+
+        Pure Python — trigger P1 (L-01: the method is called for its
+        return value, and L-02 keeps YAML asserts on record fields, so
+        the guard cannot be reached declaratively).
+        """
+        with self.assertRaises(UserError) as error:
+            self.env["res.partner"].hierarchy_aggregate([], ["color"])
+        self.assertIn("Neither parent_field nor child_field", str(error.exception))
+
+    def test_aggregate_rejects_cyclic_data(self):
+        """Reject a subtree walk that never reaches a leaf record.
+
+        Pure Python — trigger P1 (L-01: the method is called for its
+        return value) combined with the raw SQL needed to produce the
+        cycle: ``res.partner._check_parent_id`` makes a cycle unwritable
+        through the ORM, and YAML has no way to bypass a constraint
+        (L-02).
+        """
+        root = self.env["res.partner"].create({"name": "SSIWHV Agg Cycle Root"})
+        child = self.env["res.partner"].create(
+            {"name": "SSIWHV Agg Cycle Child", "parent_id": root.id}
+        )
+        self.env["res.partner"].flush()
+        self.env.cr.execute(
+            "UPDATE res_partner SET parent_id = %s WHERE id = %s",
+            (child.id, root.id),
+        )
+        self.env["res.partner"].invalidate_cache()
+        with self.assertRaises(UserError) as error:
+            self.env["res.partner"].hierarchy_aggregate(
+                [root.id], ["color"], parent_field="parent_id"
             )
         self.assertIn("nested deeper than 64 levels", str(error.exception))
