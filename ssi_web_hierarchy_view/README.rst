@@ -19,10 +19,9 @@ organizational structure, ...) can be browsed as a tree instead of only as a
 flat list or through a ``child_of`` filter.
 
 This iteration is **read only**: dragging a row to reparent it, inline edit
-and ``groupBy`` are out of scope. Searching within the hierarchy,
-``decoration-*``, a sticky header beyond the column headers, keyboard
-navigation and numeric column aggregation (``sum=``) are not implemented
-either.
+and ``groupBy`` are out of scope. ``decoration-*``, a sticky header beyond
+the column headers, keyboard navigation and numeric column aggregation
+(``sum=``) are not implemented either.
 
 Usage
 =====
@@ -101,6 +100,47 @@ survives navigating to the form view and back through the breadcrumb.
 Only the root level is paginated (80 per page, using the same pager as a
 list view); the children of an expanded node are never paginated.
 
+Searching the hierarchy
+-----------------------
+
+Filtering from the search view does **not** filter the root level only: a
+record matching the filter is shown wherever it sits in the tree, together
+with its whole parent chain, and that chain comes already expanded. So a
+match five levels deep is reachable in one filter instead of five manual
+expansions.
+
+* A row that matched the filter carries the class ``o_hierarchy_match`` and
+  is highlighted.
+* A row present only because it is an ancestor of a match carries the class
+  ``o_hierarchy_context`` and is **not** highlighted, so it reads as
+  context rather than as a result.
+* ``default_expand`` has no say while a filter is active: what is expanded
+  is exactly the chains leading to the matches. Clearing the filter goes
+  back to the full tree, ``default_expand`` included.
+* ``limit`` caps the number of **matches** here, not the number of nodes
+  kept in memory. When it cuts the result short, the same warning
+  notification as **Expand All** is shown. The pager is hidden while a
+  filter is active: the result is a tree of matches, not a page of roots.
+
+The matches and their ancestors are resolved by a single call to
+``hierarchy_search_ancestors(domain, parent_field, limit=None)``, a method
+this module adds to every model. It returns ``matches`` (ids matching the
+domain, in the model's ``_order``), ``ancestors`` (ids of their ancestors
+that do not match the domain themselves) and ``truncated``. Access rights
+are honoured — there is no ``sudo()``: an ancestor the user may not read is
+dropped silently, and its child then shows up at the top level of the tree.
+A parent chain longer than 64 levels is treated as cyclic data and raises,
+rather than looping forever.
+
+.. important::
+
+   Hierarchical search needs ``parent_field``. A view declaring only
+   ``child_field`` cannot walk a chain upwards — a record does not know its
+   parent there — so filtering such a view falls back to **flat
+   filtering**: the matching records are listed as roots, without their
+   parent chain, and can still be expanded downwards. Add ``parent_field``
+   next to ``child_field`` to get hierarchical search.
+
 Example
 -------
 
@@ -126,8 +166,11 @@ Known limitations
 
 * Read only: nodes cannot be dragged to reparent them, and there is no
   inline edit.
-* No hierarchical search: matching, highlighting the parent chain of a match,
-  and ``groupBy`` are not part of this iteration.
+* Hierarchical search needs ``parent_field``; a ``child_field``-only view
+  falls back to flat filtering (see *Searching the hierarchy*).
+* No ``groupBy``: grouping records would collide with the hierarchy itself.
+* No client-side search inside the already loaded tree: filtering always
+  goes back to the server.
 * No ``decoration-*`` and no sticky header beyond the column headers.
 * No keyboard navigation.
 * No numeric column aggregation (``sum=``).

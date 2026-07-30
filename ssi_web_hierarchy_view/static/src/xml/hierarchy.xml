@@ -32,7 +32,10 @@
             </thead>
             <tbody>
                 <t t-foreach="rows" t-as="row">
-                    <tr class="o_hierarchy_row" t-att-data-key="row.key">
+                    <tr
+                        t-attf-class="o_hierarchy_row #{widget.rowClass(row)}"
+                        t-att-data-key="row.key"
+                    >
                         <td class="o_hierarchy_cell_main">
                             <span
                                 class="o_hierarchy_indent"

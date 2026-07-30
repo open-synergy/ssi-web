@@ -226,6 +226,32 @@ scenarios:
           arch: |
             <hierarchy parent_field="no_such_field_at_all" />
 
+  - name: "ssi_web_hierarchy_view - parent_field survives the search feature"
+    steps:
+      - step: "Create a hierarchy view whose parent_field drives the search"
+        action: "create"
+        model: "ir.ui.view"
+        save_as: "view"
+        values:
+          name: "Partner Hierarchy Searchable"
+          model: "res.partner"
+          type: "hierarchy"
+          arch: |
+            <hierarchy parent_field="parent_id" limit="500">
+                <field name="name" />
+            </hierarchy>
+      - step: "Assert parent_field is still stored in the validated arch"
+        action: "assert"
+        target: "view"
+        asserts:
+          type:
+            type: "value"
+            expected: "hierarchy"
+          arch_db:
+            type: "value"
+            operator: "contains"
+            expected: 'parent_field="parent_id"'
+
   - name: "ssi_web_hierarchy_view - Action view_mode accepts hierarchy"
     steps:
       - step: "Create a hierarchy view on res.partner"
