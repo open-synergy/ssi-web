@@ -1,3 +1,4 @@
+/* global py */
 /* Copyright 2026 OpenSynergy Indonesia
  * Copyright 2026 PT. Simetri Sinergi Indonesia
  * License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl). */
@@ -8,16 +9,51 @@ odoo.define("ssi_web_hierarchy_view.HierarchyRenderer", function (require) {
     const AbstractRenderer = require("web.AbstractRenderer");
     const core = require("web.core");
     const field_utils = require("web.field_utils");
+    const session = require("web.session");
 
     const qweb = core.qweb;
 
     // Horizontal indentation added per hierarchy level, in pixels.
     const INDENT_PX = 20;
 
+    // Row decorations, in the order their classes are applied: a decoration
+    // listed later wins over an earlier one whenever several of them light
+    // up on the same row. The stylesheet declares them in this very order.
+    const DECORATIONS = [
+        "danger",
+        "warning",
+        "info",
+        "success",
+        "primary",
+        "secondary",
+        "muted",
+    ];
+
+    // Keys the tree answers to. Anything else is left to the browser, so
+    // that Tab, Shift+Tab and shortcuts keep working inside the view.
+    const KEY_DOWN = "ArrowDown";
+    const KEY_UP = "ArrowUp";
+    const KEY_RIGHT = "ArrowRight";
+    const KEY_LEFT = "ArrowLeft";
+    const KEY_ENTER = "Enter";
+    const KEY_HOME = "Home";
+    const KEY_END = "End";
+    const HANDLED_KEYS = [
+        KEY_DOWN,
+        KEY_UP,
+        KEY_RIGHT,
+        KEY_LEFT,
+        KEY_ENTER,
+        KEY_HOME,
+        KEY_END,
+    ];
+
     const HierarchyRenderer = AbstractRenderer.extend({
         events: _.extend({}, AbstractRenderer.prototype.events, {
             "click .o_hierarchy_toggle": "_onToggleClick",
             "click .o_hierarchy_row": "_onRowClick",
+            "keydown .o_hierarchy_row": "_onRowKeydown",
+            "focusin .o_hierarchy_row": "_onRowFocusIn",
         }),
 
         /**
@@ -27,6 +63,13 @@ odoo.define("ssi_web_hierarchy_view.HierarchyRenderer", function (require) {
             this._super.apply(this, arguments);
             this.columns = params.columns;
             this.fields = params.fields;
+            this.decorations = params.decorations || {};
+            // The rows actually drawn, in the order they are drawn: what
+            // ArrowUp/ArrowDown and Home/End walk through.
+            this.visibleRows = [];
+            // Roving tabindex: the one row reachable with Tab, so that Tab
+            // steps over the whole tree instead of through every row.
+            this.focusedKey = false;
         },
 
         // --------------------------------------------------------------------
@@ -36,20 +79,36 @@ odoo.define("ssi_web_hierarchy_view.HierarchyRenderer", function (require) {
         /**
          * Preserves the scroll position of the table across a re-render, so
          * that opening or closing a distant node does not jump the viewport
-         * back to the top.
+         * back to the top, together with the keyboard focus: opening a node
+         * with ArrowRight has to leave the focus on the very row that was
+         * opened.
          *
          * @override
          */
         getLocalState: function () {
-            return {scrollTop: this.el.scrollTop};
+            return {
+                scrollTop: this.el.scrollTop,
+                focusedKey: this.focusedKey,
+                // Only a row that really held the browser focus is focused
+                // again after the re-render: re-rendering because of a
+                // mouse click must not steal the focus from elsewhere.
+                hasFocus: this.$(".o_hierarchy_row:focus").length > 0,
+            };
         },
 
         /**
          * @override
          */
         setLocalState: function (localState) {
-            if (localState) {
-                this.el.scrollTop = localState.scrollTop || 0;
+            if (!localState) {
+                return;
+            }
+            this.el.scrollTop = localState.scrollTop || 0;
+            if (!localState.focusedKey) {
+                return;
+            }
+            if (localState.hasFocus) {
+                this._focusRow(localState.focusedKey);
             }
         },
 
@@ -62,6 +121,8 @@ odoo.define("ssi_web_hierarchy_view.HierarchyRenderer", function (require) {
          */
         _renderView: function () {
             const rows = this._visibleRows();
+            this.visibleRows = rows;
+            this.focusedKey = this._normalizeFocusedKey(rows);
             this.$el.empty().addClass("o_hierarchy_view");
             if (!this.state.rootCount) {
                 this.$el.append(qweb.render("ssi_web_hierarchy_view.Empty"));
@@ -104,6 +165,26 @@ odoo.define("ssi_web_hierarchy_view.HierarchyRenderer", function (require) {
         },
 
         /**
+         * The row the roving tabindex belongs to. The row focused last as
+         * long as it is still drawn, the first row otherwise, so that Tab
+         * always reaches the tree at a meaningful place — including right
+         * after a node was collapsed away under the focus.
+         *
+         * @private
+         * @param {Array} rows the rows about to be drawn
+         * @returns {String|Boolean}
+         */
+        _normalizeFocusedKey: function (rows) {
+            if (!rows.length) {
+                return false;
+            }
+            if (this.focusedKey && rows.some((row) => row.key === this.focusedKey)) {
+                return this.focusedKey;
+            }
+            return rows[0].key;
+        },
+
+        /**
          * The indentation width of one row, used inline in the QWeb
          * template since SCSS cannot depend on a dynamic level.
          *
@@ -115,18 +196,123 @@ odoo.define("ssi_web_hierarchy_view.HierarchyRenderer", function (require) {
         },
 
         /**
-         * Tells a row matching the active filter apart from a row only
-         * present because it is an ancestor of a match. Returns nothing
-         * outside search mode: in the full tree every row is equal.
+         * The extra classes of a row: which decorations of the arch light
+         * up on it and, in search mode only, whether it matched the filter
+         * itself or is one of the ancestors dragged along with a match.
          *
          * @param {Object} row
-         * @returns {String} the extra class of the row element
+         * @returns {String} the extra classes of the row element
          */
         rowClass: function (row) {
-            if (!this.state.searchMode) {
-                return "";
+            const classes = [];
+            if (this.state.searchMode) {
+                classes.push(row.isMatch ? "o_hierarchy_match" : "o_hierarchy_context");
             }
-            return row.isMatch ? "o_hierarchy_match" : "o_hierarchy_context";
+            for (const decoration of DECORATIONS) {
+                if (this._evalDecoration(decoration, row)) {
+                    classes.push("o_hierarchy_row_" + decoration);
+                }
+            }
+            return classes.join(" ");
+        },
+
+        /**
+         * @private
+         * @param {String} decoration
+         * @param {Object} row
+         * @returns {Boolean} whether the decoration lights up on that row
+         */
+        _evalDecoration: function (decoration, row) {
+            const expression = this.decorations[decoration];
+            if (!expression) {
+                return false;
+            }
+            return py.PY_isTrue(py.evaluate(expression, this._evalContext(row.data)));
+        },
+
+        /**
+         * @private
+         * @param {Object} record the raw values of one row
+         * @returns {Object} the context a decoration expression is
+         *      evaluated in
+         */
+        _evalContext: function (record) {
+            const context = _.extend({}, session.user_context, {
+                uid: session.uid,
+                today: moment().format("YYYY-MM-DD"),
+                now: moment().format("YYYY-MM-DD HH:mm:ss"),
+            });
+            for (const name of Object.keys(record)) {
+                const field = this.fields[name];
+                const value = record[name];
+                if (field && field.type === "many2one" && Array.isArray(value)) {
+                    context[name] = value.length ? value[0] : false;
+                } else {
+                    context[name] = value;
+                }
+            }
+            return context;
+        },
+
+        /**
+         * @param {Object} row
+         * @returns {Number} the ARIA level of a row, one based
+         */
+        ariaLevel: function (row) {
+            return row.level + 1;
+        },
+
+        /**
+         * @param {Object} row
+         * @returns {String|undefined} ``aria-expanded`` of a row, left out
+         *      entirely on a leaf: a node without children is neither open
+         *      nor closed
+         */
+        ariaExpanded: function (row) {
+            if (!row.hasChildren) {
+                return undefined;
+            }
+            return row.isOpen ? "true" : "false";
+        },
+
+        /**
+         * @param {Object} row
+         * @returns {Number} how many siblings the row belongs to
+         */
+        ariaSetSize: function (row) {
+            return this._siblingKeys(row).length || 1;
+        },
+
+        /**
+         * @param {Object} row
+         * @returns {Number} the position of the row among its siblings, one
+         *      based
+         */
+        ariaPosInSet: function (row) {
+            const index = this._siblingKeys(row).indexOf(row.key);
+            return index === -1 ? 1 : index + 1;
+        },
+
+        /**
+         * @param {Object} row
+         * @returns {String} ``0`` on the one row Tab reaches, ``-1`` on
+         *      every other one
+         */
+        rowTabIndex: function (row) {
+            return row.key === this.focusedKey ? "0" : "-1";
+        },
+
+        /**
+         * @private
+         * @param {Object} row
+         * @returns {Array} the keys of the row's own level, itself included
+         */
+        _siblingKeys: function (row) {
+            const parent = row.parentKey ? this.state.rows[row.parentKey] : false;
+            if (parent) {
+                return parent.childKeys || [];
+            }
+            return this.state.rootKeys;
         },
 
         /**
@@ -173,6 +359,102 @@ odoo.define("ssi_web_hierarchy_view.HierarchyRenderer", function (require) {
             return value === false || value === undefined ? "" : String(value);
         },
 
+        /**
+         * @private
+         * @param {String} rowKey
+         * @returns {jQuery} the row element of a key, empty when that row
+         *      is not drawn
+         */
+        _rowElement: function (rowKey) {
+            return this.$(".o_hierarchy_row[data-key='" + rowKey + "']");
+        },
+
+        /**
+         * Moves the keyboard focus to a row and hands it the roving
+         * tabindex. A row that is not drawn is ignored, so that a focus
+         * left over from a collapsed subtree cannot blur the tree.
+         *
+         * @private
+         * @param {String} rowKey
+         */
+        _focusRow: function (rowKey) {
+            const $row = this._rowElement(rowKey);
+            if (!$row.length) {
+                return;
+            }
+            this.focusedKey = rowKey;
+            this._updateTabIndex();
+            $row[0].focus();
+        },
+
+        /**
+         * @private
+         * @param {Number} index position in the drawn rows
+         */
+        _focusIndex: function (index) {
+            if (index < 0 || index >= this.visibleRows.length) {
+                return;
+            }
+            this._focusRow(this.visibleRows[index].key);
+        },
+
+        /**
+         * @private
+         * @param {String} rowKey the row the move starts from
+         * @param {Number} delta how many rows to move, signed
+         */
+        _focusRelative: function (rowKey, delta) {
+            const index = this.visibleRows.findIndex((row) => row.key === rowKey);
+            if (index === -1) {
+                return;
+            }
+            this._focusIndex(index + delta);
+        },
+
+        /**
+         * Keeps exactly one row reachable with Tab, the focused one.
+         *
+         * @private
+         */
+        _updateTabIndex: function () {
+            this.$(".o_hierarchy_row").attr("tabindex", "-1");
+            this._rowElement(this.focusedKey).attr("tabindex", "0");
+        },
+
+        /**
+         * Opens a closed node; on an already open one, walks down to its
+         * first child instead.
+         *
+         * @private
+         * @param {Object} row
+         */
+        _keyboardExpand: function (row) {
+            if (row.hasChildren && !row.isOpen) {
+                this.trigger_up("hierarchy_toggle_node", {rowKey: row.key});
+                return;
+            }
+            if (row.isOpen && row.childKeys && row.childKeys.length) {
+                this._focusRow(row.childKeys[0]);
+            }
+        },
+
+        /**
+         * Closes an open node; on an already closed one, walks up to its
+         * parent instead.
+         *
+         * @private
+         * @param {Object} row
+         */
+        _keyboardCollapse: function (row) {
+            if (row.isOpen) {
+                this.trigger_up("hierarchy_toggle_node", {rowKey: row.key});
+                return;
+            }
+            if (row.parentKey && this.state.rows[row.parentKey]) {
+                this._focusRow(row.parentKey);
+            }
+        },
+
         // --------------------------------------------------------------------
         // Handlers
         // --------------------------------------------------------------------
@@ -197,6 +479,68 @@ odoo.define("ssi_web_hierarchy_view.HierarchyRenderer", function (require) {
             if (row) {
                 this.trigger_up("hierarchy_open_record", {id: row.id});
             }
+        },
+
+        /**
+         * Walks the tree from the keyboard. The focus stays on rows, never
+         * on cells, and only the keys of the contract are swallowed: every
+         * other one, Tab included, is left to the browser.
+         *
+         * @private
+         * @param {KeyboardEvent} event
+         */
+        _onRowKeydown: function (event) {
+            if (!HANDLED_KEYS.includes(event.key)) {
+                return;
+            }
+            const key = $(event.currentTarget).data("key");
+            const row = this.state.rows[key];
+            if (!row) {
+                return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            switch (event.key) {
+                case KEY_DOWN:
+                    this._focusRelative(key, 1);
+                    break;
+                case KEY_UP:
+                    this._focusRelative(key, -1);
+                    break;
+                case KEY_RIGHT:
+                    this._keyboardExpand(row);
+                    break;
+                case KEY_LEFT:
+                    this._keyboardCollapse(row);
+                    break;
+                case KEY_ENTER:
+                    this.trigger_up("hierarchy_open_record", {id: row.id});
+                    break;
+                case KEY_HOME:
+                    this._focusIndex(0);
+                    break;
+                case KEY_END:
+                    this._focusIndex(this.visibleRows.length - 1);
+                    break;
+                // No default: HANDLED_KEYS has no other member.
+            }
+        },
+
+        /**
+         * Hands the roving tabindex over to whichever row took the focus,
+         * so that a row reached with Tab or with the mouse becomes the one
+         * the arrow keys start from.
+         *
+         * @private
+         * @param {FocusEvent} event
+         */
+        _onRowFocusIn: function (event) {
+            const key = $(event.currentTarget).data("key");
+            if (!this.state.rows[key] || key === this.focusedKey) {
+                return;
+            }
+            this.focusedKey = key;
+            this._updateTabIndex();
         },
     });
 

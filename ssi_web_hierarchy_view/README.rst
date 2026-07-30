@@ -19,9 +19,9 @@ organizational structure, ...) can be browsed as a tree instead of only as a
 flat list or through a ``child_of`` filter.
 
 This iteration is **read only**: dragging a row to reparent it, inline edit
-and ``groupBy`` are out of scope. ``decoration-*``, a sticky header beyond
-the column headers, keyboard navigation and numeric column aggregation
-(``sum=``) are not implemented either.
+and ``groupBy`` are out of scope. Per column ``decoration-*``
+(``<field decoration-…>``), user resizable or hideable columns and numeric
+column aggregation (``sum=``) are not implemented either.
 
 Usage
 =====
@@ -74,6 +74,70 @@ The first ``<field>`` child of the ``hierarchy`` tag is the hierarchy column:
 it carries the indentation and the expand/collapse toggle. Every other
 ``<field>`` is a plain column. Without any ``<field>`` at all, the hierarchy
 column falls back to ``display_name``.
+
+Row decorations
+---------------
+
+A row is coloured by the ``decoration-*`` attributes of the ``hierarchy``
+tag, the same way a list view colours its own rows. The value of such an
+attribute is a Python expression evaluated in the browser against the values
+of the row::
+
+    <hierarchy parent_field="parent_id" decoration-danger="not active">
+        <field name="name" />
+    </hierarchy>
+
+Seven suffixes are supported, exactly the ones ``ssi_web_gantt`` supports:
+``danger``, ``warning``, ``info``, ``success``, ``primary``, ``secondary``
+and ``muted``. Anything else — ``decoration-mantap``, a misspelt
+``decoration-sucess`` — is **rejected when the view is saved** rather than
+ignored silently, and so is an expression that is not valid Python.
+
+* A row a decoration lights up on carries the class
+  ``o_hierarchy_row_<suffix>``, so a database may restyle a decoration
+  without touching this module.
+* Several decorations may light up on the same row. They are applied in the
+  order of the list above, so the last one that lights up is the colour
+  actually seen.
+* A field read by an expression is fetched even when it is no column of the
+  tree: the view registers it server side, which is also what makes an
+  expression naming a field that does not exist fail at save time instead of
+  in the browser.
+* The expression is evaluated against the row's own values plus ``uid``,
+  ``today`` and ``now``.
+
+Sticky header and keyboard navigation
+-------------------------------------
+
+The column headers stay visible while a long tree is scrolled. This is
+plain CSS (``position: sticky`` on the header cells), so there is no scroll
+listener and no position arithmetic anywhere.
+
+The tree is fully reachable from the keyboard. The focus is on rows, never on
+cells, and only one row at a time is reachable with ``Tab`` (a roving
+``tabindex``), so ``Tab`` steps over the tree instead of walking through
+every single row.
+
+``ArrowDown`` / ``ArrowUp``
+  Move to the next/previous visible row.
+
+``ArrowRight``
+  Open a closed node; move to its first child when it is already open.
+
+``ArrowLeft``
+  Close an open node; move to its parent when it is already closed.
+
+``Enter``
+  Open the form view of the focused row.
+
+``Home`` / ``End``
+  Move to the first/last visible row.
+
+Moving the focus never changes the page of the pager, and the expansion
+state is only ever changed by ``ArrowLeft``/``ArrowRight``. The tree exposes
+``role="tree"``, every row ``role="treeitem"`` with ``aria-level``,
+``aria-setsize``/``aria-posinset`` and, on a node that has children,
+``aria-expanded``.
 
 Other attributes
 ----------------
@@ -154,6 +218,8 @@ Example
                 parent_field="parent_id"
                 child_field="child_ids"
                 default_expand="1"
+                decoration-muted="not active"
+                decoration-info="is_company"
             >
                 <field name="name" />
                 <field name="email" />
@@ -171,8 +237,10 @@ Known limitations
 * No ``groupBy``: grouping records would collide with the hierarchy itself.
 * No client-side search inside the already loaded tree: filtering always
   goes back to the server.
-* No ``decoration-*`` and no sticky header beyond the column headers.
-* No keyboard navigation.
+* ``decoration-*`` is per row only: ``<field decoration-…>``, which colours
+  a single cell in a list view, is not supported.
+* No user resizable or hideable columns, and no preference remembering
+  either.
 * No numeric column aggregation (``sum=``).
 
 Installation

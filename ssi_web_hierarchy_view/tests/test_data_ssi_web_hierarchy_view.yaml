@@ -252,6 +252,145 @@ scenarios:
             operator: "contains"
             expected: 'parent_field="parent_id"'
 
+  - name: "ssi_web_hierarchy_view - Arch without any decoration is accepted"
+    steps:
+      - step: "Create a hierarchy view declaring no decoration at all"
+        action: "create"
+        model: "ir.ui.view"
+        save_as: "view"
+        values:
+          name: "Partner Hierarchy Without Decoration"
+          model: "res.partner"
+          type: "hierarchy"
+          arch: |
+            <hierarchy parent_field="parent_id">
+                <field name="name" />
+            </hierarchy>
+      - step: "Assert the view is stored as a hierarchy view"
+        action: "assert"
+        target: "view"
+        asserts:
+          type:
+            type: "value"
+            expected: "hierarchy"
+
+  - name: "ssi_web_hierarchy_view - All seven decorations are accepted at once"
+    steps:
+      - step: "Create a hierarchy view carrying every supported decoration"
+        action: "create"
+        model: "ir.ui.view"
+        save_as: "view"
+        values:
+          name: "Partner Hierarchy All Decorations"
+          model: "res.partner"
+          type: "hierarchy"
+          arch: |
+            <hierarchy
+                parent_field="parent_id"
+                decoration-danger="not active"
+                decoration-warning="is_company"
+                decoration-info="type == 'contact'"
+                decoration-success="employee"
+                decoration-primary="color == 1"
+                decoration-secondary="phone == False"
+                decoration-muted="comment == False"
+            >
+                <field name="name" />
+            </hierarchy>
+      - step: "Assert every decoration survived the arch validation"
+        action: "assert"
+        target: "view"
+        asserts:
+          type:
+            type: "value"
+            expected: "hierarchy"
+          arch_db:
+            type: "value"
+            operator: "contains"
+            expected: "decoration-danger"
+      - step: "Assert the last decoration of the list survived too"
+        action: "assert"
+        target: "view"
+        asserts:
+          arch_db:
+            type: "value"
+            operator: "contains"
+            expected: "decoration-muted"
+
+  - name: "ssi_web_hierarchy_view - Decoration may read a field outside the columns"
+    steps:
+      - step: "Create a view whose decoration reads a field that is no column"
+        action: "create"
+        model: "ir.ui.view"
+        save_as: "view"
+        values:
+          name: "Partner Hierarchy Decoration Field Not A Column"
+          model: "res.partner"
+          type: "hierarchy"
+          arch: |
+            <hierarchy parent_field="parent_id" decoration-danger="not active">
+                <field name="name" />
+            </hierarchy>
+      - step: "Assert the arch was accepted and stored"
+        action: "assert"
+        target: "view"
+        asserts:
+          type:
+            type: "value"
+            expected: "hierarchy"
+          arch_db:
+            type: "value"
+            operator: "contains"
+            expected: 'decoration-danger="not active"'
+
+  - name: "ssi_web_hierarchy_view - Unsupported decoration suffix is rejected"
+    steps:
+      - step: "Create a hierarchy view carrying decoration-mantap"
+        action: "create"
+        model: "ir.ui.view"
+        expect_error:
+          type: "ValidationError"
+          message_contains: "decoration-mantap"
+        values:
+          name: "Partner Hierarchy Unsupported Decoration"
+          model: "res.partner"
+          type: "hierarchy"
+          arch: |
+            <hierarchy parent_field="parent_id" decoration-mantap="not active" />
+
+  - name: "ssi_web_hierarchy_view - Decoration reading an unknown field is rejected"
+    steps:
+      - step: "Create a view whose decoration reads a field of no model"
+        action: "create"
+        model: "ir.ui.view"
+        expect_error:
+          type: "ValidationError"
+          message_contains: "does not exist"
+        values:
+          name: "Partner Hierarchy Decoration Unknown Field"
+          model: "res.partner"
+          type: "hierarchy"
+          arch: |
+            <hierarchy
+                parent_field="parent_id"
+                decoration-danger="no_such_field_at_all"
+            />
+
+  - name: "ssi_web_hierarchy_view - Decoration that is not Python is rejected"
+    steps:
+      - step: "Create a view whose decoration is not a Python expression"
+        action: "create"
+        model: "ir.ui.view"
+        expect_error:
+          type: "ValidationError"
+          message_contains: "not a valid Python expression"
+        values:
+          name: "Partner Hierarchy Decoration Not Python"
+          model: "res.partner"
+          type: "hierarchy"
+          arch: |
+            <hierarchy parent_field="parent_id" decoration-danger="not ==" />
+
   - name: "ssi_web_hierarchy_view - Action view_mode accepts hierarchy"
     steps:
       - step: "Create a hierarchy view on res.partner"
