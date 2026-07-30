@@ -2,10 +2,18 @@
 # Copyright 2026 PT. Simetri Sinergi Indonesia
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/AGPL).
 
+from unittest import mock
+
 from odoo_yaml_test import YamlTransactionCase
 
 from odoo.exceptions import UserError
 from odoo.tests import tagged
+
+# Name of the custom model the monetary scenarios are run on. No model of
+# ``base`` carries a ``monetary`` field at all, and this module depends on
+# ``base``/``web`` only, so amounts in several currencies can only be
+# totalled on a model declared by the test itself.
+CURRENCY_MODEL = "x_ssiwhv_amount"
 
 
 @tagged("post_install", "-at_install")
@@ -13,9 +21,9 @@ class TestSsiWebHierarchyView(YamlTransactionCase):
     """Covers the ``hierarchy`` view arch validation, search and totals.
 
     The arch validation scenarios live in the YAML file; the hierarchical
-    search, the subtree totals and the grand total are asserted here
-    because what is under test is the value
-    ``hierarchy_search_ancestors``, ``hierarchy_aggregate`` and
+    search, the subtree totals, the grand total and the currencies those
+    totals are made of are asserted here because what is under test is
+    the value ``hierarchy_search_ancestors``, ``hierarchy_aggregate`` and
     ``hierarchy_grand_total`` return.
     """
 
@@ -73,6 +81,120 @@ class TestSsiWebHierarchyView(YamlTransactionCase):
                 "parent_id": parent.id,
                 "color": 4,
                 "partner_latitude": 30.125,
+            }
+        )
+        return grandparent, parent, child
+
+    def _create_currency_model(self):
+        """Declare a custom model carrying a monetary hierarchy.
+
+        A model of its own is declared rather than custom fields added
+        to ``res.partner``: a brand new model carries no ``currency_id``
+        of any kind, so ``fields.Monetary`` can only resolve its
+        currency to the ``x_currency_id`` created here, whatever other
+        module happens to be installed next to this one.
+
+        The registry is restored afterwards, so the model never leaks
+        into another test.
+
+        Pure Python fixture — trigger P10 (L-09/L-10: the fixture has to
+        change the registry and register a cleanup restoring it, which
+        no YAML step can express).
+
+        :return: the name of the model that was created
+        """
+        self.addCleanup(self.env.registry.reset_changes)
+        model = self.env["ir.model"].create(
+            {
+                "name": "SSIWHV Amount Node",
+                "model": CURRENCY_MODEL,
+                "field_id": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "x_name",
+                            "ttype": "char",
+                            "field_description": "Name",
+                        },
+                    ),
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "x_color",
+                            "ttype": "integer",
+                            "field_description": "Color",
+                        },
+                    ),
+                    (
+                        0,
+                        0,
+                        {
+                            "name": "x_currency_id",
+                            "ttype": "many2one",
+                            "relation": "res.currency",
+                            "field_description": "Currency",
+                        },
+                    ),
+                ],
+            }
+        )
+        field_model = self.env["ir.model.fields"]
+        # Both fields are added after the model itself: the parent points
+        # at the model, and the monetary field can only pick up
+        # x_currency_id once that field is part of the model.
+        field_model.create(
+            {
+                "name": "x_parent_id",
+                "model_id": model.id,
+                "ttype": "many2one",
+                "relation": CURRENCY_MODEL,
+                "field_description": "Parent",
+            }
+        )
+        field_model.create(
+            {
+                "name": "x_amount",
+                "model_id": model.id,
+                "ttype": "monetary",
+                "field_description": "Amount",
+            }
+        )
+        return CURRENCY_MODEL
+
+    def _create_amount_chain(self, currencies, amounts):
+        """Create a three level chain of monetary nodes.
+
+        :param currencies: the three currencies, the deepest node last
+        :param amounts: the three amounts, the deepest node last
+        :return: tuple of the grandparent, the parent and the child
+        """
+        node_model = self.env[CURRENCY_MODEL]
+        grandparent = node_model.create(
+            {
+                "x_name": "SSIWHV Amount Grandparent",
+                "x_color": 1,
+                "x_currency_id": currencies[0].id,
+                "x_amount": amounts[0],
+            }
+        )
+        parent = node_model.create(
+            {
+                "x_name": "SSIWHV Amount Parent",
+                "x_parent_id": grandparent.id,
+                "x_color": 2,
+                "x_currency_id": currencies[1].id,
+                "x_amount": amounts[1],
+            }
+        )
+        child = node_model.create(
+            {
+                "x_name": "SSIWHV Amount Child",
+                "x_parent_id": parent.id,
+                "x_color": 4,
+                "x_currency_id": currencies[2].id,
+                "x_amount": amounts[2],
             }
         )
         return grandparent, parent, child
@@ -613,3 +735,230 @@ class TestSsiWebHierarchyView(YamlTransactionCase):
                 [root.id], ["color"], parent_field="parent_id"
             )
         self.assertIn("nested deeper than 64 levels", str(error.exception))
+
+    def test_aggregate_without_currency_keeps_the_old_shape(self):
+        """Assert the default answer is the plain number it always was.
+
+        This is the regression lock of the contract documented in
+        ``README.rst``: a caller that never heard of ``with_currency``
+        has to keep reading ``{node_id: {field_name: <number>}}`` and
+        ``{field_name: <number>}``, not a nested dict.
+
+        Pure Python — trigger P1 (L-01: the ``call`` action discards the
+        return value of a method, and L-02 only lets an assert reach a
+        field of a record, never a returned dict) and trigger P2 (L-04:
+        there is no float tolerance in YAML).
+        """
+        self._create_currency_model()
+        usd = self.env.ref("base.USD")
+        eur = self.env.ref("base.EUR")
+        grandparent = self._create_amount_chain([usd, eur, usd], [100.0, 20.0, 5.0])[0]
+        node_model = self.env[CURRENCY_MODEL]
+        totals = node_model.hierarchy_aggregate(
+            [grandparent.id], ["x_amount"], parent_field="x_parent_id"
+        )
+        self.assertNotIsInstance(totals[grandparent.id]["x_amount"], dict)
+        self.assertAlmostEqual(totals[grandparent.id]["x_amount"], 125.0, places=2)
+
+        grand_totals = node_model.hierarchy_grand_total(
+            [grandparent.id], ["x_amount"], parent_field="x_parent_id"
+        )
+        self.assertNotIsInstance(grand_totals["x_amount"], dict)
+        self.assertAlmostEqual(grand_totals["x_amount"], 125.0, places=2)
+
+    def test_aggregate_with_currency_reports_one_currency(self):
+        """Assert a subtree of one single currency reports exactly one id.
+
+        Pure Python — trigger P1 (L-01: the ``call`` action discards the
+        return value of a method, and L-02 only lets an assert reach a
+        field of a record, never a returned dict) and trigger P2 (L-04:
+        there is no float tolerance in YAML).
+        """
+        self._create_currency_model()
+        usd = self.env.ref("base.USD")
+        grandparent = self._create_amount_chain([usd, usd, usd], [100.0, 20.0, 5.0])[0]
+        totals = self.env[CURRENCY_MODEL].hierarchy_aggregate(
+            [grandparent.id],
+            ["x_amount"],
+            parent_field="x_parent_id",
+            with_currency=True,
+        )
+        entry = totals[grandparent.id]["x_amount"]
+        self.assertEqual(entry["currency_ids"], [usd.id])
+        self.assertAlmostEqual(entry["total"], 125.0, places=2)
+
+    def test_aggregate_with_currency_reports_mixed_currencies(self):
+        """Assert a subtree of two currencies reports both of their ids.
+
+        The total itself stays the raw arithmetic sum: nothing is
+        converted here, the browser is only told not to show it.
+
+        Pure Python — trigger P1 (L-01: the ``call`` action discards the
+        return value of a method, and L-02 only lets an assert reach a
+        field of a record, never a returned dict) and trigger P2 (L-04:
+        there is no float tolerance in YAML).
+        """
+        self._create_currency_model()
+        usd = self.env.ref("base.USD")
+        eur = self.env.ref("base.EUR")
+        chain = self._create_amount_chain([usd, eur, usd], [100.0, 20.0, 5.0])
+        grandparent = chain[0]
+        child = chain[2]
+        totals = self.env[CURRENCY_MODEL].hierarchy_aggregate(
+            [grandparent.id, child.id],
+            ["x_amount"],
+            parent_field="x_parent_id",
+            with_currency=True,
+        )
+        mixed = totals[grandparent.id]["x_amount"]
+        self.assertEqual(set(mixed["currency_ids"]), {usd.id, eur.id})
+        self.assertAlmostEqual(mixed["total"], 125.0, places=2)
+        # The leaf underneath the mixed parent stays perfectly readable.
+        leaf = totals[child.id]["x_amount"]
+        self.assertEqual(leaf["currency_ids"], [usd.id])
+        self.assertAlmostEqual(leaf["total"], 5.0, places=2)
+
+    def test_aggregate_with_currency_ignores_a_zero_amount(self):
+        """Assert a zero in another currency does not silence a column.
+
+        A row worth nothing says nothing about the currency of the
+        total, so it must not turn a sound column into a refused one.
+
+        Pure Python — trigger P1 (L-01: the ``call`` action discards the
+        return value of a method, and L-02 only lets an assert reach a
+        field of a record, never a returned dict) and trigger P2 (L-04:
+        there is no float tolerance in YAML).
+        """
+        self._create_currency_model()
+        usd = self.env.ref("base.USD")
+        eur = self.env.ref("base.EUR")
+        grandparent = self._create_amount_chain([usd, eur, usd], [100.0, 0.0, 5.0])[0]
+        totals = self.env[CURRENCY_MODEL].hierarchy_aggregate(
+            [grandparent.id],
+            ["x_amount"],
+            parent_field="x_parent_id",
+            with_currency=True,
+        )
+        entry = totals[grandparent.id]["x_amount"]
+        self.assertEqual(entry["currency_ids"], [usd.id])
+        self.assertAlmostEqual(entry["total"], 105.0, places=2)
+
+    def test_aggregate_with_currency_reports_none_for_a_plain_field(self):
+        """Assert a field that is not monetary reports an empty list.
+
+        The browser sends every aggregated column in one single call, so
+        a plain integer column has to answer without raising anything.
+
+        Pure Python — trigger P1 (L-01: the ``call`` action discards the
+        return value of a method, and L-02 only lets an assert reach a
+        field of a record, never a returned dict).
+        """
+        self._create_currency_model()
+        usd = self.env.ref("base.USD")
+        eur = self.env.ref("base.EUR")
+        grandparent = self._create_amount_chain([usd, eur, usd], [100.0, 20.0, 5.0])[0]
+        totals = self.env[CURRENCY_MODEL].hierarchy_aggregate(
+            [grandparent.id],
+            ["x_color", "x_amount"],
+            parent_field="x_parent_id",
+            with_currency=True,
+        )
+        self.assertEqual(totals[grandparent.id]["x_color"]["currency_ids"], [])
+        self.assertEqual(totals[grandparent.id]["x_color"]["total"], 7)
+
+    def test_grand_total_with_currency_deduplicates_currencies(self):
+        """Assert the grand total reports the union of the currencies.
+
+        Handing over a grandparent, its child and its grandchild at once
+        is what a ``child_field``-only view does; the currencies of the
+        overlapping subtrees have to come back deduplicated, exactly
+        like the amount itself.
+
+        Pure Python — trigger P1 (L-01: the ``call`` action discards the
+        return value of a method, and L-02 only lets an assert reach a
+        field of a record, never a returned dict) and trigger P2 (L-04:
+        there is no float tolerance in YAML).
+        """
+        self._create_currency_model()
+        usd = self.env.ref("base.USD")
+        eur = self.env.ref("base.EUR")
+        grandparent, parent, child = self._create_amount_chain(
+            [usd, eur, usd], [100.0, 20.0, 5.0]
+        )
+        totals = self.env[CURRENCY_MODEL].hierarchy_grand_total(
+            [grandparent.id, parent.id, child.id],
+            ["x_amount"],
+            parent_field="x_parent_id",
+            with_currency=True,
+        )
+        entry = totals["x_amount"]
+        self.assertEqual(len(entry["currency_ids"]), 2)
+        self.assertEqual(set(entry["currency_ids"]), {usd.id, eur.id})
+        self.assertAlmostEqual(entry["total"], 125.0, places=2)
+
+    def test_grand_total_with_currency_reports_one_currency(self):
+        """Assert a grand total of one single currency reports one id.
+
+        Pure Python — trigger P1 (L-01: the ``call`` action discards the
+        return value of a method, and L-02 only lets an assert reach a
+        field of a record, never a returned dict) and trigger P2 (L-04:
+        there is no float tolerance in YAML).
+        """
+        self._create_currency_model()
+        usd = self.env.ref("base.USD")
+        grandparent = self._create_amount_chain([usd, usd, usd], [100.0, 20.0, 5.0])[0]
+        totals = self.env[CURRENCY_MODEL].hierarchy_grand_total(
+            [grandparent.id],
+            ["x_amount"],
+            parent_field="x_parent_id",
+            with_currency=True,
+        )
+        self.assertEqual(totals["x_amount"]["currency_ids"], [usd.id])
+        self.assertAlmostEqual(totals["x_amount"]["total"], 125.0, places=2)
+
+    def test_aggregate_rejects_an_unreachable_currency_field(self):
+        """Reject a monetary field whose currency field does not exist.
+
+        Silently dropping it would hand the browser a column it believes
+        to be single-currency while nothing was ever read to prove it.
+
+        Pure Python — trigger P1 (L-01: the method is called for its
+        return value, and L-02 keeps YAML asserts on record fields) and
+        trigger P6 (L-15: the field has to be patched, since a monetary
+        field pointing nowhere cannot even be set up by the registry).
+        """
+        self._create_currency_model()
+        node_model = self.env[CURRENCY_MODEL]
+        field = node_model._fields["x_amount"]
+        with mock.patch.object(field, "currency_field", "x_no_such_currency"):
+            with self.assertRaises(UserError) as error:
+                node_model.hierarchy_aggregate(
+                    [],
+                    ["x_amount"],
+                    parent_field="x_parent_id",
+                    with_currency=True,
+                )
+        self.assertIn("x_no_such_currency", str(error.exception))
+        self.assertIn("does not exist", str(error.exception))
+
+    def test_grand_total_rejects_an_unreachable_currency_field(self):
+        """Reject the same unreachable currency field on the grand total.
+
+        Pure Python — trigger P1 (L-01: the method is called for its
+        return value, and L-02 keeps YAML asserts on record fields) and
+        trigger P6 (L-15: the field has to be patched, since a monetary
+        field pointing nowhere cannot even be set up by the registry).
+        """
+        self._create_currency_model()
+        node_model = self.env[CURRENCY_MODEL]
+        field = node_model._fields["x_amount"]
+        with mock.patch.object(field, "currency_field", "x_no_such_currency"):
+            with self.assertRaises(UserError) as error:
+                node_model.hierarchy_grand_total(
+                    [],
+                    ["x_amount"],
+                    parent_field="x_parent_id",
+                    with_currency=True,
+                )
+        self.assertIn("x_no_such_currency", str(error.exception))
+        self.assertIn("does not exist", str(error.exception))
