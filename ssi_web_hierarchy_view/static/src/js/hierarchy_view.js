@@ -37,6 +37,16 @@ odoo.define("ssi_web_hierarchy_view.HierarchyView", function (require) {
     const IDENTIFIER_RE = /[A-Za-z_]\w*/g;
     const STRING_LITERAL_RE = /'[^']*'|"[^"]*"/g;
 
+    // Field types a column may ask a subtree total for, exactly the ones a
+    // list view aggregates. The server rejects any other one when the view
+    // is saved; the same list is applied here so that an arch stored before
+    // that check existed cannot break the browser.
+    const AGGREGATABLE_TYPES = ["integer", "float", "monetary"];
+
+    // The currency field a monetary field falls back to when it declares
+    // none of its own, the same fallback field_utils applies.
+    const DEFAULT_CURRENCY_FIELD = "currency_id";
+
     const HierarchyView = AbstractView.extend({
         display_name: _lt("Hierarchy"),
         icon: "fa-sitemap",
@@ -83,6 +93,10 @@ odoo.define("ssi_web_hierarchy_view.HierarchyView", function (require) {
             this.loadParams.parentField = parentField;
             this.loadParams.defaultExpand = defaultExpand;
             this.loadParams.limit = limit;
+            this.loadParams.aggregateFieldNames = this._aggregateFieldNames(
+                columns,
+                fields
+            );
 
             this.withSearchPanel = false;
         },
@@ -99,7 +113,7 @@ odoo.define("ssi_web_hierarchy_view.HierarchyView", function (require) {
          *
          * @private
          * @param {Object} fields viewInfo.fields
-         * @returns {Array} [{name, label}]
+         * @returns {Array} [{name, label, sum}]
          */
         _buildColumns: function (fields) {
             const columns = [];
@@ -109,6 +123,10 @@ odoo.define("ssi_web_hierarchy_view.HierarchyView", function (require) {
                     columns.push({
                         name: child.attrs.name,
                         label: child.attrs.string || field.string || child.attrs.name,
+                        // The label of the grand total row, spelled the
+                        // same way a list view spells it. False when the
+                        // column asks for no total at all.
+                        sum: child.attrs.sum || false,
                     });
                 }
             }
@@ -116,12 +134,62 @@ odoo.define("ssi_web_hierarchy_view.HierarchyView", function (require) {
         },
 
         /**
+         * The columns whose subtree total the model has to ask the server
+         * for. A column asking for a total on a field the browser cannot
+         * aggregate is dropped rather than sent: the server would refuse
+         * the whole call and the tree would show nothing at all.
+         *
+         * @private
+         * @param {Array} columns
+         * @param {Object} fields viewInfo.fields
+         * @returns {Array} the names of the aggregated fields
+         */
+        _aggregateFieldNames: function (columns, fields) {
+            const names = [];
+            for (const column of columns) {
+                const field = fields[column.name];
+                if (!column.sum || !field) {
+                    continue;
+                }
+                if (AGGREGATABLE_TYPES.includes(field.type) && field.store) {
+                    names.push(column.name);
+                }
+            }
+            return _.uniq(names);
+        },
+
+        /**
+         * The currency fields the monetary totals are formatted with: the
+         * ``currency_field`` each monetary column declares itself. They
+         * are usually no column of the tree, so nothing else fetches them.
+         *
+         * @private
+         * @param {Array} columns
+         * @param {Object} fields viewInfo.fields
+         * @returns {Array}
+         */
+        _currencyFieldNames: function (columns, fields) {
+            const names = [];
+            for (const name of this._aggregateFieldNames(columns, fields)) {
+                const field = fields[name];
+                if (field.type !== "monetary") {
+                    continue;
+                }
+                const currencyField = field.currency_field || DEFAULT_CURRENCY_FIELD;
+                if (fields[currencyField]) {
+                    names.push(currencyField);
+                }
+            }
+            return names;
+        },
+
+        /**
          * Every field the tree reads has to be fetched by search_read/read:
          * the columns, plus ``child_field``/``parent_field`` themselves so
          * the model can tell whether a row has children and, in
          * ``child_field`` mode, read them without an extra search, plus the
-         * fields a decoration expression reads, which are usually no
-         * column at all.
+         * fields a decoration expression reads and the currency field of a
+         * monetary total, which are usually no column at all.
          *
          * @private
          * @param {Array} columns
@@ -142,6 +210,9 @@ odoo.define("ssi_web_hierarchy_view.HierarchyView", function (require) {
                 names.push(parentField);
             }
             for (const name of this._decorationFieldNames(fields)) {
+                names.push(name);
+            }
+            for (const name of this._currencyFieldNames(columns, fields)) {
                 names.push(name);
             }
             return _.uniq(names);

@@ -391,6 +391,112 @@ scenarios:
           arch: |
             <hierarchy parent_field="parent_id" decoration-danger="not ==" />
 
+  - name: "ssi_web_hierarchy_view - sum on two numeric columns is accepted"
+    steps:
+      - step: "Create a view totalling an integer and a float column"
+        action: "create"
+        model: "ir.ui.view"
+        save_as: "view"
+        values:
+          name: "Partner Hierarchy Two Totals"
+          model: "res.partner"
+          type: "hierarchy"
+          arch: |
+            <hierarchy parent_field="parent_id">
+                <field name="name" />
+                <field name="color" sum="Total Color" />
+                <field name="credit_limit" sum="Total Credit Limit" />
+            </hierarchy>
+      - step: "Assert both sum attributes survived the arch validation"
+        action: "assert"
+        target: "view"
+        asserts:
+          type:
+            type: "value"
+            expected: "hierarchy"
+          arch_db:
+            type: "value"
+            operator: "contains"
+            expected: 'sum="Total Color"'
+      - step: "Assert the second sum attribute survived too"
+        action: "assert"
+        target: "view"
+        asserts:
+          arch_db:
+            type: "value"
+            operator: "contains"
+            expected: 'sum="Total Credit Limit"'
+
+  - name: "ssi_web_hierarchy_view - sum on a char column is rejected"
+    steps:
+      - step: "Create a view asking for the total of a char column"
+        action: "create"
+        model: "ir.ui.view"
+        expect_error:
+          type: "ValidationError"
+          message_contains: "needs a numeric field"
+        values:
+          name: "Partner Hierarchy Sum On Char"
+          model: "res.partner"
+          type: "hierarchy"
+          arch: |
+            <hierarchy parent_field="parent_id">
+                <field name="name" sum="Total Name" />
+            </hierarchy>
+
+  - name: "ssi_web_hierarchy_view - sum on a date column is rejected"
+    steps:
+      - step: "Create a view asking for the total of a datetime column"
+        action: "create"
+        model: "ir.ui.view"
+        expect_error:
+          type: "ValidationError"
+          message_contains: "needs a numeric field"
+        values:
+          name: "Partner Hierarchy Sum On Date"
+          model: "res.partner"
+          type: "hierarchy"
+          arch: |
+            <hierarchy parent_field="parent_id">
+                <field name="name" />
+                <field name="write_date" sum="Total Write Date" />
+            </hierarchy>
+
+  - name: "ssi_web_hierarchy_view - sum on a non stored column is rejected"
+    steps:
+      - step: "Create a view asking for the total of a computed column"
+        action: "create"
+        model: "ir.ui.view"
+        expect_error:
+          type: "ValidationError"
+          message_contains: "needs a stored field"
+        values:
+          name: "Partner Hierarchy Sum Not Stored"
+          model: "res.partner"
+          type: "hierarchy"
+          arch: |
+            <hierarchy parent_field="parent_id">
+                <field name="name" />
+                <field name="active_lang_count" sum="Total Languages" />
+            </hierarchy>
+
+  - name: "ssi_web_hierarchy_view - sum on a column that does not exist is rejected"
+    steps:
+      - step: "Create a view asking for the total of an unknown column"
+        action: "create"
+        model: "ir.ui.view"
+        expect_error:
+          type: "ValidationError"
+          message_contains: "does not exist"
+        values:
+          name: "Partner Hierarchy Sum Unknown Field"
+          model: "res.partner"
+          type: "hierarchy"
+          arch: |
+            <hierarchy parent_field="parent_id">
+                <field name="no_such_field_at_all" sum="Total Nothing" />
+            </hierarchy>
+
   - name: "ssi_web_hierarchy_view - Action view_mode accepts hierarchy"
     steps:
       - step: "Create a hierarchy view on res.partner"

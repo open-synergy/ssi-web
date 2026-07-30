@@ -5,6 +5,13 @@
 from odoo import _, fields, models
 from odoo.tools.view_validation import get_variable_names
 
+from .base import HIERARCHY_AGGREGATABLE_TYPES
+
+# Attribute of a <field> child asking for the subtree total of that column
+# to be shown on every parent row. Its value is the label of the grand
+# total row, spelled exactly like the list view's own aggregate attribute.
+AGGREGATE_ATTRIBUTE = "sum"
+
 # Arch attributes naming a field of the view's own model. Both are
 # registered on the name manager exactly like a <field> child, so the
 # generic field-existence check already rejects an arch pointing at a field
@@ -56,7 +63,8 @@ class IrUiView(models.Model):
         an arch that points at a field which does not exist, without any
         extra code here. The fields read by a ``decoration-*`` expression
         are registered the same way, so that they are fetched by the
-        browser even when they are no column of the tree.
+        browser even when they are no column of the tree, and so is the
+        currency field of a monetary column asking for a total.
 
         :param node: the ``<hierarchy>`` arch element
         :param name_manager: the view's ``NameManager``
@@ -68,12 +76,114 @@ class IrUiView(models.Model):
                 name_manager.has_field(value, {})
 
         self._register_hierarchy_decoration_fields(node, name_manager)
+        self._register_hierarchy_aggregate_fields(node, name_manager)
 
         if name_manager.validate:
             self._validate_hierarchy_fields(node, name_manager.Model)
             self._validate_hierarchy_decorations(node)
+            self._validate_hierarchy_aggregates(node, name_manager.Model)
 
         node_info["editable"] = False
+
+    def _hierarchy_aggregates(self, node):
+        """Return the columns of the hierarchy tag asking for a total.
+
+        :param node: the ``<hierarchy>`` arch element
+        :return: dict ``{field_name: label}`` built from the ``<field>``
+            children carrying a ``sum`` attribute, the field name being
+            whatever ``name`` holds and not necessarily an existing field
+        """
+        aggregates = {}
+        for child in node:
+            if child.tag != "field":
+                continue
+            field_name = child.get("name")
+            label = child.get(AGGREGATE_ATTRIBUTE)
+            if field_name and label:
+                aggregates[field_name] = label
+        return aggregates
+
+    def _register_hierarchy_aggregate_fields(self, node, name_manager):
+        """Register the currency field of every monetary total column.
+
+        A monetary value is formatted with the currency held by the
+        ``currency_field`` the field itself declares, and that currency
+        field is usually no column of the tree, so nothing else declares
+        it. Registering it here makes ``fields_view_get`` report it, which
+        is what the browser fetches.
+
+        :param node: the ``<hierarchy>`` arch element
+        :param name_manager: the view's ``NameManager``
+        """
+        model = name_manager.Model
+        for field_name in self._hierarchy_aggregates(node):
+            field = model._fields.get(field_name)
+            if field is None or field.type != "monetary":
+                continue
+            currency_field = getattr(field, "currency_field", None)
+            if currency_field and currency_field in model._fields:
+                name_manager.has_field(currency_field, {})
+
+    def _validate_hierarchy_aggregates(self, node, model):
+        """Validate the ``sum`` attribute of the hierarchy columns.
+
+        A total is computed server side by querying the column, so only a
+        stored numeric field may carry ``sum``: a column of another type
+        has no meaningful total and would silently show nothing at all,
+        and a field that is not stored cannot be queried. A field that
+        does not exist is left to the generic name manager check, which
+        already reports "Field ... does not exist".
+
+        :param node: the ``<hierarchy>`` arch element
+        :param model: the recordset of the view's model
+        """
+        for field_name in self._hierarchy_aggregates(node):
+            field = model._fields.get(field_name)
+            if field is None:
+                continue
+            if field.type not in HIERARCHY_AGGREGATABLE_TYPES:
+                self._raise_hierarchy_aggregate_type_error(field_name, model)
+            elif not field.store:
+                self._raise_hierarchy_aggregate_store_error(field_name, model)
+
+    def _raise_hierarchy_aggregate_type_error(self, field_name, model):
+        """Reject a ``sum`` asked for on a column that is not numeric.
+
+        :param field_name: name of the field carrying ``sum``
+        :param model: the recordset of the view's model
+        """
+        error_message = _(
+            """
+Context: Validate hierarchy view architecture
+Database ID: %s
+Problem: Attribute sum on field %s of model %s needs a numeric field
+Solution: Set sum on a field of type %s
+"""
+            % (
+                self.id,
+                field_name,
+                model._name,
+                ", ".join(HIERARCHY_AGGREGATABLE_TYPES),
+            )
+        )
+        self.handle_view_error(error_message)
+
+    def _raise_hierarchy_aggregate_store_error(self, field_name, model):
+        """Reject a ``sum`` asked for on a column that is not stored.
+
+        :param field_name: name of the field carrying ``sum``
+        :param model: the recordset of the view's model
+        """
+        error_message = _(
+            """
+Context: Validate hierarchy view architecture
+Database ID: %s
+Problem: Attribute sum on field %s of model %s needs a stored field
+Solution: Set sum on a stored field, a total is queried server side
+"""
+            % (self.id, field_name, model._name)
+        )
+        self.handle_view_error(error_message)
 
     def _hierarchy_decorations(self, node):
         """Return the ``decoration-*`` attributes of the hierarchy tag.

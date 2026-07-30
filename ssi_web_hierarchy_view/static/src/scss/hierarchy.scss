@@ -101,6 +101,28 @@
     color: #adb5bd;
 }
 
+// A cell showing the total of a whole subtree instead of the value of the
+// record itself. Emphasised so that the number on a parent row cannot be
+// mistaken for a value that record carries on its own.
+.o_hierarchy_aggregate {
+    font-weight: bold;
+}
+
+// The grand total of every root currently on screen, drawn once at the very
+// bottom of the tree. The rule sits after the decoration classes so that it
+// is never tinted by a decoration of the arch.
+.o_hierarchy_total_row {
+    background-color: #f8f9fa;
+
+    > td {
+        border-top: 2px solid #dee2e6;
+    }
+}
+
+.o_hierarchy_total_label {
+    font-weight: bold;
+}
+
 .o_hierarchy_cell_main {
     display: flex;
     align-items: center;
