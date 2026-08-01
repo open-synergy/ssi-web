@@ -9,3 +9,75 @@ scenarios:
           - ["state", "=", "installed"]
         save_as: "module"
         expect_count: 1
+
+  - name: "ssi_web_login - Auth signup fields template overrides login label"
+    steps:
+      - step: "Get auth_signup.fields override view"
+        action: "ref"
+        xml_id: "ssi_web_login.auth_signup_fields"
+        save_as: "view"
+      - step: "Assert view is active and inherits auth_signup.fields"
+        action: "assert"
+        target: "view"
+        asserts:
+          active:
+            type: "value"
+            operator: "is_truthy"
+          inherit_id:
+            type: "m2o"
+            expected_xml_id: "auth_signup.fields"
+          arch_db:
+            type: "value"
+            operator: "contains"
+            expected: "Your Username"
+
+  - name: "ssi_web_login - Auth signup reset password template overrides login label"
+    steps:
+      - step: "Get auth_signup.reset_password override view"
+        action: "ref"
+        xml_id: "ssi_web_login.auth_signup_reset_password"
+        save_as: "view"
+      - step: "Assert view is active and inherits auth_signup.reset_password"
+        action: "assert"
+        target: "view"
+        asserts:
+          active:
+            type: "value"
+            operator: "is_truthy"
+          inherit_id:
+            type: "m2o"
+            expected_xml_id: "auth_signup.reset_password"
+          arch_db:
+            type: "value"
+            operator: "contains"
+            expected: "Your Username"
+
+  - name: "ssi_web_login - Set password email template uses login"
+    steps:
+      - step: "Get auth_signup.set_password_email template"
+        action: "ref"
+        xml_id: "auth_signup.set_password_email"
+        save_as: "template"
+      - step: "Assert body_html references object.login"
+        action: "assert"
+        target: "template"
+        asserts:
+          body_html:
+            type: "value"
+            operator: "contains"
+            expected: "${object.login}"
+
+  - name: "ssi_web_login - Signup account created email template uses login"
+    steps:
+      - step: "Get auth_signup.mail_template_user_signup_account_created template"
+        action: "ref"
+        xml_id: "auth_signup.mail_template_user_signup_account_created"
+        save_as: "template"
+      - step: "Assert body_html references object.login"
+        action: "assert"
+        target: "template"
+        asserts:
+          body_html:
+            type: "value"
+            operator: "contains"
+            expected: "${object.login}"

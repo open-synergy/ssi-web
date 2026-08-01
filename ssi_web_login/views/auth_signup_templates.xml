@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2026 OpenSynergy Indonesia
+     Copyright 2026 PT. Simetri Sinergi Indonesia
+     License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl). -->
+<odoo>
+    <template
+        id="ssi_web_login.auth_signup_fields"
+        inherit_id="auth_signup.fields"
+        name="SSI Web Login - Auth Signup Fields"
+        priority="99"
+    >
+        <xpath expr="//div[@class='form-group field-login']/label" position="replace">
+            <label for="login">Your Username</label>
+        </xpath>
+    </template>
+
+    <template
+        id="ssi_web_login.auth_signup_reset_password"
+        inherit_id="auth_signup.reset_password"
+        name="SSI Web Login - Auth Signup Reset Password"
+        priority="99"
+    >
+        <xpath expr="//div[@class='form-group field-login']/label" position="replace">
+            <label for="login" class="col-form-label">Your Username</label>
+        </xpath>
+    </template>
+</odoo>
