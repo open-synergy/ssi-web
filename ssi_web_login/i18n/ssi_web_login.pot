@@ -17,3 +17,9 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:ssi_web_login.login
 msgid "Username"
 msgstr ""
+
+#. module: ssi_web_login
+#: model_terms:ir.ui.view,arch_db:ssi_web_login.auth_signup_fields
+#: model_terms:ir.ui.view,arch_db:ssi_web_login.auth_signup_reset_password
+msgid "Your Username"
+msgstr ""
