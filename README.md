@@ -24,7 +24,7 @@ addon | version | maintainers | summary
 [ssi_web_gantt](ssi_web_gantt/) | 14.0.2.0.0 |  | Web Gantt
 [ssi_web_hierarchy_view](ssi_web_hierarchy_view/) | 14.0.1.3.2 |  | Web Hierarchy View
 [ssi_web_inbox](ssi_web_inbox/) | 14.0.1.1.0 |  | Web Inbox
-[ssi_web_login](ssi_web_login/) | 14.0.1.1.0 |  | SSI Web Login
+[ssi_web_login](ssi_web_login/) | 14.0.1.1.1 |  | SSI Web Login
 [ssi_web_server_action_confirmation](ssi_web_server_action_confirmation/) | 14.0.1.1.0 |  | Web Server Action Confirmation
 [ssi_web_sticky_list_header](ssi_web_sticky_list_header/) | 14.0.1.1.0 |  | Web Sticky List Header
 [ssi_web_widget_ace_git](ssi_web_widget_ace_git/) | 14.0.1.2.0 |  | Extends the Ace code widget with a button to fetch file content from GitHub
