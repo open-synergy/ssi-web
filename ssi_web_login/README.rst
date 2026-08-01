@@ -6,6 +6,11 @@
 SSI Web Login
 =============
 
+Replaces the "Email"/"Your Email" label with "Username" across every web
+authentication surface (login, signup, reset password) and overrides the
+``auth_signup`` invitation and set-password mail templates so invited users
+are told their ``res.users.login`` value instead of their email address.
+
 
 Installation
 ============

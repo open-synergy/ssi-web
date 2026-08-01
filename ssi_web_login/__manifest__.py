@@ -11,9 +11,12 @@
     "application": False,
     "depends": [
         "web",
+        "auth_signup",
     ],
     "data": [
+        "data/auth_signup_mail_template_data.xml",
         "views/webclient_templates.xml",
+        "views/auth_signup_templates.xml",
     ],
     "demo": [],
 }
