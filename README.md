@@ -26,6 +26,7 @@ addon | version | maintainers | summary
 [ssi_web_inbox](ssi_web_inbox/) | 14.0.1.1.0 |  | Web Inbox
 [ssi_web_login](ssi_web_login/) | 14.0.1.1.1 |  | SSI Web Login
 [ssi_web_server_action_confirmation](ssi_web_server_action_confirmation/) | 14.0.1.1.0 |  | Web Server Action Confirmation
+[ssi_web_show_hide_password](ssi_web_show_hide_password/) | 14.0.1.0.0 |  | Web Show Hide Password
 [ssi_web_sticky_list_header](ssi_web_sticky_list_header/) | 14.0.1.1.0 |  | Web Sticky List Header
 [ssi_web_widget_ace_git](ssi_web_widget_ace_git/) | 14.0.1.2.0 |  | Extends the Ace code widget with a button to fetch file content from GitHub
 [ssi_web_widget_copy_content](ssi_web_widget_copy_content/) | 14.0.1.2.0 |  | Widget to Add Copy Button Beside Field
