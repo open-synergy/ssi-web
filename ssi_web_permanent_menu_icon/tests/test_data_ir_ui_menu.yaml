@@ -1,0 +1,202 @@
+scenarios:
+  - name: "Write web_icon outside install_mode arms the flag"
+    steps:
+      - step: "Create a plain menu"
+        action: "create"
+        model: "ir.ui.menu"
+        save_as: "menu1"
+        values:
+          name: "Permanent Menu Icon Test 1"
+      - step: "Flag defaults to False"
+        action: "assert"
+        target: "menu1"
+        asserts:
+          web_icon_permanent:
+            type: "value"
+            expected: false
+      - step: "Write web_icon with no special context"
+        action: "write"
+        target: "menu1"
+        values:
+          web_icon: "fa fa-cogs,#3AADAA,#FFFFFF"
+      - step: "Icon written and flag armed automatically"
+        action: "assert"
+        target: "menu1"
+        asserts:
+          web_icon:
+            type: "value"
+            expected: "fa fa-cogs,#3AADAA,#FFFFFF"
+          web_icon_permanent:
+            type: "value"
+            expected: true
+
+  - name: "Locked menu keeps its icon under an install_mode write"
+    steps:
+      - step: "Create a menu already flagged permanent"
+        action: "create"
+        model: "ir.ui.menu"
+        save_as: "menu2"
+        values:
+          name: "Permanent Menu Icon Test 2"
+          web_icon: "fa fa-lock,#111111,#222222"
+          web_icon_permanent: true
+      - step: "Module data loader tries to overwrite the icon"
+        action: "write"
+        target: "menu2"
+        context:
+          install_mode: true
+        values:
+          web_icon: "fa fa-unlock,#333333,#444444"
+      - step: "Icon and flag stay as the user set them"
+        action: "assert"
+        target: "menu2"
+        asserts:
+          web_icon:
+            type: "value"
+            expected: "fa fa-lock,#111111,#222222"
+          web_icon_permanent:
+            type: "value"
+            expected: true
+
+  - name: "Unflagged menu icon still follows install_mode writes"
+    steps:
+      - step: "Create a menu never customized by a user"
+        action: "create"
+        model: "ir.ui.menu"
+        save_as: "menu3"
+        values:
+          name: "Permanent Menu Icon Test 3"
+          web_icon: "fa fa-a,#000000,#000000"
+      - step: "Module data loader updates the icon"
+        action: "write"
+        target: "menu3"
+        context:
+          install_mode: true
+        values:
+          web_icon: "fa fa-b,#111111,#111111"
+      - step: "Default Odoo behavior is preserved"
+        action: "assert"
+        target: "menu3"
+        asserts:
+          web_icon:
+            type: "value"
+            expected: "fa fa-b,#111111,#111111"
+
+  - name: "Locked menu still gets non-icon fields updated"
+    steps:
+      - step: "Create a menu already flagged permanent"
+        action: "create"
+        model: "ir.ui.menu"
+        save_as: "menu4"
+        values:
+          name: "Original Name 4"
+          web_icon: "fa fa-c,#222222,#222222"
+          web_icon_permanent: true
+      - step: "Module data loader updates only the name"
+        action: "write"
+        target: "menu4"
+        context:
+          install_mode: true
+        values:
+          name: "Updated Name 4"
+      - step: "Name changed, icon untouched"
+        action: "assert"
+        target: "menu4"
+        asserts:
+          name:
+            type: "value"
+            expected: "Updated Name 4"
+          web_icon:
+            type: "value"
+            expected: "fa fa-c,#222222,#222222"
+
+  - name: "Unlocking a menu restores default install_mode behavior"
+    steps:
+      - step: "Create a menu already flagged permanent"
+        action: "create"
+        model: "ir.ui.menu"
+        save_as: "menu5"
+        values:
+          name: "Permanent Menu Icon Test 5"
+          web_icon: "fa fa-d,#333333,#333333"
+          web_icon_permanent: true
+      - step: "User unticks the permanent flag"
+        action: "write"
+        target: "menu5"
+        values:
+          web_icon_permanent: false
+      - step: "Module data loader updates the icon again"
+        action: "write"
+        target: "menu5"
+        context:
+          install_mode: true
+        values:
+          web_icon: "fa fa-e,#444444,#444444"
+      - step: "Icon follows the module definition again"
+        action: "assert"
+        target: "menu5"
+        asserts:
+          web_icon:
+            type: "value"
+            expected: "fa fa-e,#444444,#444444"
+
+  - name: "Writing a non-icon field never arms the flag by itself"
+    steps:
+      - step: "Create a menu never customized by a user"
+        action: "create"
+        model: "ir.ui.menu"
+        save_as: "menu6"
+        values:
+          name: "Original Name 6"
+      - step: "Regular write touching only name"
+        action: "write"
+        target: "menu6"
+        values:
+          name: "Updated Name 6"
+      - step: "Flag stays False"
+        action: "assert"
+        target: "menu6"
+        asserts:
+          web_icon_permanent:
+            type: "value"
+            expected: false
+
+  - name: "Locked menu's web_icon_data is not recomputed either"
+    steps:
+      - step: "Create a menu already flagged permanent"
+        action: "create"
+        model: "ir.ui.menu"
+        save_as: "menu7"
+        values:
+          name: "Permanent Menu Icon Test 7"
+          web_icon: "fa fa-f,#555555,#555555"
+          web_icon_permanent: true
+      - step: "Stamp a non-empty web_icon_data directly"
+        action: "write"
+        target: "menu7"
+        values:
+          web_icon_data: "eA=="
+      - step: "Icon data is present before the install_mode write"
+        action: "assert"
+        target: "menu7"
+        asserts:
+          web_icon_data:
+            type: "value"
+            operator: "is_truthy"
+      - step: "Module data loader tries to overwrite the icon"
+        action: "write"
+        target: "menu7"
+        context:
+          install_mode: true
+        values:
+          web_icon: "fa fa-g,#666666,#666666"
+      - step: "web_icon untouched and web_icon_data still present"
+        action: "assert"
+        target: "menu7"
+        asserts:
+          web_icon:
+            type: "value"
+            expected: "fa fa-f,#555555,#555555"
+          web_icon_data:
+            type: "value"
+            operator: "is_truthy"
