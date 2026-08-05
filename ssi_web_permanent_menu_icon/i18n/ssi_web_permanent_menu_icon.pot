@@ -1,0 +1,47 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* ssi_web_permanent_menu_icon
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 14.0\n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: ssi_web_permanent_menu_icon
+#: model:ir.model.fields,field_description:ssi_web_permanent_menu_icon.field_ir_ui_menu__display_name
+msgid "Display Name"
+msgstr ""
+
+#. module: ssi_web_permanent_menu_icon
+#: model:ir.model.fields,field_description:ssi_web_permanent_menu_icon.field_ir_ui_menu__id
+msgid "ID"
+msgstr ""
+
+#. module: ssi_web_permanent_menu_icon
+#: model:ir.model.fields,field_description:ssi_web_permanent_menu_icon.field_ir_ui_menu____last_update
+msgid "Last Modified on"
+msgstr ""
+
+#. module: ssi_web_permanent_menu_icon
+#: model:ir.model,name:ssi_web_permanent_menu_icon.model_ir_ui_menu
+msgid "Menu"
+msgstr ""
+
+#. module: ssi_web_permanent_menu_icon
+#: model:ir.model.fields,field_description:ssi_web_permanent_menu_icon.field_ir_ui_menu__web_icon_permanent
+msgid "Permanent Web Icon"
+msgstr ""
+
+#. module: ssi_web_permanent_menu_icon
+#: model:ir.model.fields,help:ssi_web_permanent_menu_icon.field_ir_ui_menu__web_icon_permanent
+msgid ""
+"When enabled, this menu's web icon (and its computed icon data) is no longer"
+" overwritten when the owning module is updated (`odoo -u`). Untick to let "
+"module updates set the icon again."
+msgstr ""
