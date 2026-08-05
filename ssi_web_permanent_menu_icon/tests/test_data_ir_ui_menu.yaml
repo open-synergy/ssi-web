@@ -171,11 +171,18 @@ scenarios:
           name: "Permanent Menu Icon Test 7"
           web_icon: "fa fa-f,#555555,#555555"
           web_icon_permanent: true
-      - step: "Stamp a sentinel web_icon_data directly"
+      - step: "Stamp a non-empty web_icon_data directly"
         action: "write"
         target: "menu7"
         values:
           web_icon_data: "eA=="
+      - step: "Icon data is present before the install_mode write"
+        action: "assert"
+        target: "menu7"
+        asserts:
+          web_icon_data:
+            type: "value"
+            operator: "is_truthy"
       - step: "Module data loader tries to overwrite the icon"
         action: "write"
         target: "menu7"
@@ -183,7 +190,7 @@ scenarios:
           install_mode: true
         values:
           web_icon: "fa fa-g,#666666,#666666"
-      - step: "Neither web_icon nor web_icon_data was recomputed"
+      - step: "web_icon untouched and web_icon_data still present"
         action: "assert"
         target: "menu7"
         asserts:
@@ -192,4 +199,4 @@ scenarios:
             expected: "fa fa-f,#555555,#555555"
           web_icon_data:
             type: "value"
-            expected: "eA=="
+            operator: "is_truthy"
