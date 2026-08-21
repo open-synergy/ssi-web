@@ -396,8 +396,18 @@ msgid "Visibility"
 msgstr ""
 
 #. module: ssi_web_chatwoot
+#: model:ir.model.fields,field_description:ssi_web_chatwoot.field_chatwoot_configuration__website_message_ids
+msgid "Website Messages"
+msgstr ""
+
+#. module: ssi_web_chatwoot
 #: model:ir.model.fields,field_description:ssi_web_chatwoot.field_chatwoot_configuration__website_token
 msgid "Website Token"
+msgstr ""
+
+#. module: ssi_web_chatwoot
+#: model:ir.model.fields,help:ssi_web_chatwoot.field_chatwoot_configuration__website_message_ids
+msgid "Website communication history"
 msgstr ""
 
 #. module: ssi_web_chatwoot
