@@ -31,7 +31,7 @@ addon | version | maintainers | summary
 [ssi_web_sticky_list_header](ssi_web_sticky_list_header/) | 14.0.1.1.0 |  | Web Sticky List Header
 [ssi_web_widget_ace_git](ssi_web_widget_ace_git/) | 14.0.1.2.0 |  | Extends the Ace code widget with a button to fetch file content from GitHub
 [ssi_web_widget_copy_content](ssi_web_widget_copy_content/) | 14.0.1.2.0 |  | Widget to Add Copy Button Beside Field
-[ssi_web_widget_csv_table](ssi_web_widget_csv_table/) | 14.0.1.3.0 |  | Widget CSV Table
+[ssi_web_widget_csv_table](ssi_web_widget_csv_table/) | 14.0.1.4.0 |  | Widget CSV Table
 [ssi_web_widget_json](ssi_web_widget_json/) | 14.0.1.1.0 |  | Widget JSON Viewer
 [ssi_web_widget_many2onereference_clickable](ssi_web_widget_many2onereference_clickable/) | 14.0.1.1.0 |  | Widget Many2one Reference Clickable
 [ssi_web_widget_rjsf](ssi_web_widget_rjsf/) | 14.0.1.1.0 |  | Field widget to edit JSON fields using React JSON Schema Form (RJSF)
