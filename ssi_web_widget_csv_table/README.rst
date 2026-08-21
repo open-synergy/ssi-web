@@ -29,7 +29,17 @@ The widget will:
 
 * **Readonly mode**: Parse the CSV text and display it as a styled table with
   row numbers, sticky headers, numeric alignment, and row count info.
-* **Edit mode**: Show a standard textarea for CSV input/editing.
+* **Edit mode**: Show a "Text" / "Table" toggle. "Text" is a standard
+  textarea for raw CSV input; "Table" renders an editable grid (per-cell
+  text inputs, checkboxes for ``TRUE``/``FALSE`` values, and pagination).
+  Both modes stay in sync and edits in either one are saved together.
+
+By default, edit mode opens in "Text". Pass ``default_mode: "table"`` in
+``options`` to open in "Table" instead:
+
+.. code-block:: xml
+
+    <field name="sampling_data" widget="csv_table" options="{'default_mode': 'table'}" />
 
 Bug Tracker
 ===========

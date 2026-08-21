@@ -397,7 +397,8 @@ odoo.define("ssi_web_widget_csv_table.csv_table", function (require) {
         init: function () {
             this._super.apply(this, arguments);
             this._hasHeader = true;
-            this._tableEditMode = false;
+            this._tableEditMode =
+                (this.nodeOptions && this.nodeOptions.default_mode) === "table";
             this._currentPage = 0;
             this._pageSize = 50;
             this._parsedRows = null;
