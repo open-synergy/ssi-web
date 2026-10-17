@@ -20,6 +20,7 @@ setuptools.setup(
         'odoo14-addon-ssi_web_show_hide_password',
         'odoo14-addon-ssi_web_sticky_list_header',
         'odoo14-addon-ssi_web_widget_ace_git',
+        'odoo14-addon-ssi_web_widget_ace_mode',
         'odoo14-addon-ssi_web_widget_copy_content',
         'odoo14-addon-ssi_web_widget_csv_table',
         'odoo14-addon-ssi_web_widget_json',
