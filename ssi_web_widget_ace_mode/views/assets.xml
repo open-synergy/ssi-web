@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2026 OpenSynergy Indonesia
+     Copyright 2026 PT. Simetri Sinergi Indonesia
+     License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl). -->
+<odoo>
+    <template
+        id="assets_backend"
+        name="ssi_web_widget_ace_mode assets"
+        inherit_id="web.assets_backend"
+    >
+        <xpath expr="." position="inside">
+            <script
+                type="text/javascript"
+                src="/ssi_web_widget_ace_mode/static/src/js/ace_mode.js"
+            />
+        </xpath>
+    </template>
+
+    <template
+        id="qunit_suite_tests"
+        name="ssi_web_widget_ace_mode tests"
+        inherit_id="web.qunit_suite_tests"
+    >
+        <xpath expr="." position="inside">
+            <script
+                type="text/javascript"
+                src="/ssi_web_widget_ace_mode/static/tests/ace_mode_tests.js"
+            />
+        </xpath>
+    </template>
+</odoo>
