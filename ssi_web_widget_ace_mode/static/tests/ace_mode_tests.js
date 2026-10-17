@@ -105,7 +105,7 @@ odoo.define("ssi_web_widget_ace_mode.ace_mode_tests", function (require) {
     });
 
     QUnit.test("jsLibs paths are never duplicated", function (assert) {
-        assert.expect(6);
+        assert.expect(CORE_LIBS.length + MODULE_LIBS.length);
         var again = flatten(aceMode.extendJsLibs(AceEditor.prototype.jsLibs));
         CORE_LIBS.concat(MODULE_LIBS).forEach(function (path) {
             assert.strictEqual(count(again, path), 1, path + " appears once");
