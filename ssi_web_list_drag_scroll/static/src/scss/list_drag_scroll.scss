@@ -123,3 +123,15 @@ body.o_ssi_dragging {
     max-height: 70vh;
     overflow: auto;
 }
+
+// Bootstrap lifts a hovered, focused or active `.btn-group > .btn` to
+// `z-index: 1`. The sticky form status bar has `z-index: 1` as well but comes
+// earlier in the DOM, so a pager button of an x2many (still focused after a
+// click on it) would show through the status bar when the page is scrolled.
+.o_form_view .o_form_sheet .o_pager .btn-group > .btn {
+    &:hover,
+    &:focus,
+    &:active {
+        z-index: auto;
+    }
+}
