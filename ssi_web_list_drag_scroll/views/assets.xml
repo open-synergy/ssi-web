@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Copyright 2025 OpenSynergy Indonesia
+     Copyright 2025 PT. Simetri Sinergi Indonesia
+     License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html). -->
+<odoo>
+    <template
+        id="assets_backend"
+        name="ssi_web_list_drag_scroll assets"
+        inherit_id="web.assets_backend"
+    >
+        <xpath expr="." position="inside">
+            <link
+                rel="stylesheet"
+                href="/ssi_web_list_drag_scroll/static/src/scss/list_drag_scroll.scss"
+            />
+            <script
+                type="text/javascript"
+                src="/ssi_web_list_drag_scroll/static/src/js/list_drag_scroll.js"
+            />
+        </xpath>
+    </template>
+</odoo>
