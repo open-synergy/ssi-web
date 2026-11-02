@@ -24,6 +24,7 @@ addon | version | maintainers | summary
 [ssi_web_gantt](ssi_web_gantt/) | 14.0.2.0.0 |  | Web Gantt
 [ssi_web_hierarchy_view](ssi_web_hierarchy_view/) | 14.0.1.3.2 |  | Web Hierarchy View
 [ssi_web_inbox](ssi_web_inbox/) | 14.0.1.1.0 |  | Web Inbox
+[ssi_web_list_drag_scroll](ssi_web_list_drag_scroll/) | 14.0.1.0.1 |  | Drag list views with the mouse and lock columns while scrolling
 [ssi_web_login](ssi_web_login/) | 14.0.1.1.1 |  | SSI Web Login
 [ssi_web_permanent_menu_icon](ssi_web_permanent_menu_icon/) | 14.0.1.0.0 |  | Web Permanent Menu Icon
 [ssi_web_server_action_confirmation](ssi_web_server_action_confirmation/) | 14.0.1.1.0 |  | Web Server Action Confirmation

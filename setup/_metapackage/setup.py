@@ -14,6 +14,7 @@ setuptools.setup(
         'odoo14-addon-ssi_web_gantt',
         'odoo14-addon-ssi_web_hierarchy_view',
         'odoo14-addon-ssi_web_inbox',
+        'odoo14-addon-ssi_web_list_drag_scroll',
         'odoo14-addon-ssi_web_login',
         'odoo14-addon-ssi_web_permanent_menu_icon',
         'odoo14-addon-ssi_web_server_action_confirmation',
