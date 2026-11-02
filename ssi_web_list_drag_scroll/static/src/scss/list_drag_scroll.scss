@@ -1,0 +1,125 @@
+// Copyright 2025 OpenSynergy Indonesia
+// Copyright 2025 PT. Simetri Sinergi Indonesia
+// License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
+
+// Same fallback as ssi_web_sticky_list_header.
+$ssi-lock-bg: if(
+    variable-exists(o-view-background-color),
+    $o-view-background-color,
+    #fff
+);
+
+// From the press on: no text selection (also covers browsers that start a
+// selection even when mousedown is prevented).
+body.o_ssi_drag_armed {
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    user-select: none !important;
+}
+
+// While dragging: grab cursor everywhere, no text selection.
+body.o_ssi_dragging {
+    cursor: grabbing !important;
+    user-select: none !important;
+
+    * {
+        cursor: grabbing !important;
+        user-select: none !important;
+    }
+}
+
+.o_list_view.o_ssi_drag_scroll {
+    // Own stacking context: the z-index values below only order cells inside the
+    // list and never rise above sticky page elements (status bar, control panel).
+    isolation: isolate;
+
+    .o_list_table {
+        // Locked columns. Cells need an opaque background, otherwise the
+        // scrolled content shows through them.
+        th.o_ssi_locked_col,
+        td.o_ssi_locked_col {
+            position: sticky;
+            z-index: 2;
+            background-color: $ssi-lock-bg;
+        }
+
+        th.o_ssi_locked_col {
+            z-index: 4;
+        }
+
+        // Column headers stay visible while the list is scrolled down.
+        thead th {
+            // !important: core forces `position: relative` on sortable headers
+            // with a more specific selector.
+            position: sticky !important;
+            top: 0;
+            z-index: 3;
+            background-color: $ssi-lock-bg;
+        }
+
+        thead th.o_ssi_locked_col {
+            z-index: 4;
+        }
+
+        // Footer (totals) keeps its own background, here the dark bar, instead of
+        // the white used for body cells.
+        tfoot > tr {
+            background-color: inherit;
+        }
+
+        tfoot > tr > td.o_ssi_locked_col {
+            background-color: inherit;
+            box-shadow: none;
+        }
+
+        // Re-create the zebra and hover tints that Bootstrap puts on the row.
+        tbody tr:nth-of-type(odd) > td.o_ssi_locked_col {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.05));
+        }
+
+        tbody tr:hover > td.o_ssi_locked_col {
+            background-image: linear-gradient(
+                rgba(0, 0, 0, 0.075),
+                rgba(0, 0, 0, 0.075)
+            );
+        }
+
+        // Edge of the locked block, so the boundary stays visible.
+        .o_ssi_locked_col_last {
+            box-shadow: inset -2px 0 0 rgba(0, 0, 0, 0.12);
+        }
+
+        // Pin icon in the column header: faint until hovered or active.
+        .o_ssi_lock_toggle {
+            position: relative;
+            z-index: 2;
+            margin-right: 4px;
+            opacity: 0;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: opacity 0.15s;
+
+            &.o_ssi_lock_active {
+                opacity: 1;
+                color: $o-brand-primary;
+            }
+        }
+
+        th:hover .o_ssi_lock_toggle:not(.o_ssi_lock_active) {
+            opacity: 0.5;
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+    }
+}
+
+// Standalone list: .o_content is the only scroller, so the header sticks to
+// its top and horizontal dragging happens on that same scroller.
+// Inline x2many (inside a form): the table wrapper must be the scroller for both
+// axes, otherwise the header cannot stick while the wrapper scrolls sideways.
+.o_field_widget .o_list_view.o_ssi_drag_scroll > .table-responsive {
+    max-height: 70vh;
+    overflow: auto;
+}
