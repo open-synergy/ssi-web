@@ -132,6 +132,7 @@ odoo.define("ssi_web_list_drag_scroll.ListRenderer", function (require) {
             this._super.apply(this, arguments);
             if (this._isDragScrollEnabled()) {
                 this._ssiApplyLocks();
+                this._ssiMoveOptionalToggle();
             }
         },
 
@@ -144,6 +145,7 @@ odoo.define("ssi_web_list_drag_scroll.ListRenderer", function (require) {
                 if (self._isDragScrollEnabled()) {
                     self._ssiObserveTable();
                     self._ssiApplyLocks();
+                    self._ssiMoveOptionalToggle();
                 }
                 return result;
             });
@@ -294,6 +296,29 @@ odoo.define("ssi_web_list_drag_scroll.ListRenderer", function (require) {
                 self._ssiApplyLocks();
             });
             this._ssiResizeObserver.observe(table);
+        },
+
+        /**
+         * Moves the optional columns toggler (three dots) out of the scrolling
+         * box. Core puts it in the table, so it scrolls away with the content
+         * and the scroll bar covers it. In a strip next to the scroll bar it
+         * stays reachable in every browser.
+         */
+        _ssiMoveOptionalToggle: function () {
+            var wrapper = this.el.querySelector(":scope > .table-responsive");
+            var toggle = this.el.querySelector(
+                "table .o_optional_columns_dropdown_toggle"
+            );
+            if (
+                !wrapper ||
+                !toggle ||
+                !this.el.closest(".o_field_widget") ||
+                window.getComputedStyle(wrapper).overflowY !== "auto"
+            ) {
+                return;
+            }
+            this.el.classList.add("o_ssi_toggle_strip");
+            this.el.appendChild(toggle);
         },
 
         /**
