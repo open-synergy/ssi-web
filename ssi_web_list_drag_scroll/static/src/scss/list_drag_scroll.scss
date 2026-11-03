@@ -124,6 +124,19 @@ body.o_ssi_dragging {
     overflow: auto;
 }
 
+// The optional columns toggler (three dots) sits in a strip right of the
+// scroll box, see `_ssiMoveOptionalToggle`: next to the scroll bar, never under
+// it, and it does not move when the table is scrolled.
+.o_field_widget .o_list_view.o_ssi_drag_scroll.o_ssi_toggle_strip {
+    position: relative;
+    padding-right: 24px;
+
+    > .o_optional_columns_dropdown_toggle {
+        top: 0;
+        right: 0;
+    }
+}
+
 // Bootstrap lifts a hovered, focused or active `.btn-group > .btn` to
 // `z-index: 1`. The sticky form status bar has `z-index: 1` as well but comes
 // earlier in the DOM, so a pager button of an x2many (still focused after a
