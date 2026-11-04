@@ -152,6 +152,32 @@ odoo.define("ssi_web_list_drag_scroll.ListRenderer", function (require) {
         },
 
         /**
+         * Puts the locked columns first, so they sit side by side at the left
+         * edge. A sticky cell only sticks once it is scrolled to its offset,
+         * which a locked column far to the right might never reach. Unlocking
+         * restores the order of the view, as it is always derived from it.
+         *
+         * @override
+         */
+        _processColumns: function () {
+            this._super.apply(this, arguments);
+            if (!this._isDragScrollEnabled()) {
+                return;
+            }
+            var self = this;
+            var locked = [];
+            var others = [];
+            this.columns.forEach(function (node) {
+                if (node.tag === "field" && self._ssiIsLocked(node)) {
+                    locked.push(node);
+                } else {
+                    others.push(node);
+                }
+            });
+            this.columns = locked.concat(others);
+        },
+
+        /**
          * Adds the lock toggle to the header of every field column.
          *
          * @override
@@ -338,7 +364,10 @@ odoo.define("ssi_web_list_drag_scroll.ListRenderer", function (require) {
             });
             if (node) {
                 writeStoredLock(this._ssiLockKey(name), !this._ssiIsLocked(node));
-                this._ssiApplyLocks();
+                // The new order and the sticky offsets are applied by the
+                // render, through _processColumns and _renderView.
+                this._processColumns(this.columnInvisibleFields);
+                this._render();
             }
         },
 
